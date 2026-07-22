@@ -1,0 +1,87 @@
+<form [formGroup]="form" (ngSubmit)="save()" *peaLoading="loading()" class="form">
+  <h3>{{ isNew ? 'New Work Order' : 'Edit Work Order #' + reference() }}</h3>
+
+  <fieldset>
+    <legend>Order Details</legend>
+
+    <div class="group">
+      <div class="field">
+        <label>Status</label>
+        <select formControlName="status">
+          <option value="planned">Planned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Due Date</label>
+        <input type="date" formControlName="due_date">
+      </div>
+    </div>
+
+
+    <div class="field">
+      <label>Notes</label>
+      <textarea formControlName="notes" rows="3"></textarea>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Items to Manufacture</legend>
+   
+    <div class="items" formArrayName="items">
+      @for (item of itemControls; track $index; let rowIndex = $index) {
+        <div [formGroupName]="rowIndex" class="item group">
+          <div class="field grow" [style.zIndex]="activeDropdown() === rowIndex ? 100 : 1">
+            <div class="custom-select" [class.open]="activeDropdown() === rowIndex">
+              <div class="selected-value" (click)="toggleDropdown(rowIndex)">
+                {{ getSelectedDisplay(rowIndex) }}
+              </div>
+              @if (activeDropdown() === rowIndex) {
+                <div class="dropdown-panel">
+                  <input type="text" 
+                         placeholder="Type to search..." 
+                         (input)="filterItems(rowIndex, $event)"
+                         (click)="$event.stopPropagation()"
+                         autofocus>
+                  <div class="options-list">
+                    @for (opt of filteredItems()[rowIndex]; track opt.id) {
+                      <div class="option-item" (click)="selectItem(rowIndex, opt)">
+                         {{ opt.name }} | ({{ opt.sku || 'No SKU' }})
+                      </div>
+                    }
+                    @if (filteredItems()[rowIndex]?.length === 0) {
+                        <div class="option-item disabled">No items found</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          
+          <div class="field">
+            <input type="number" formControlName="quantity_planned" min="1">
+          </div>
+
+          <button type="button" class="button" (click)="removeItem(rowIndex)">Remove</button>
+
+        </div>
+      }
+      @if (itemControls.length === 0) {
+          <p >No items added yet.</p>
+      }
+    </div>
+
+    <div class="actions">
+      <button type="button" class="button" (click)="addItem()">Add Item</button>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <a class="button" routerLink="/work-orders">{{ form.dirty ? 'Cancel Changes' : 'Back to Works Orders' }}</a>
+    <button type="submit" class="button primary large" [disabled]="form.invalid">Save</button>
+  </div>
+
+</form>

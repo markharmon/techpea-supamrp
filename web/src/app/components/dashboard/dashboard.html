@@ -1,0 +1,24 @@
+<section class="dashboard-grid">
+	<app-work-orders-widget class="dashboard-card dashboard-card-wide"></app-work-orders-widget>
+
+	<app-low-stock-widget
+		class="dashboard-card"
+		title="Low Materials"
+		[is_manufactured]="true"
+		[is_saleable]="false">
+	</app-low-stock-widget>
+
+	<app-low-stock-widget
+		class="dashboard-card"
+		title="Low Products"
+		[is_manufactured]="true"
+		[is_saleable]="true">
+	</app-low-stock-widget>
+
+	<app-low-stock-widget
+		class="dashboard-card"
+		title="Low Parts"
+		[is_manufactured]="false"
+		[is_saleable]="false">
+	</app-low-stock-widget>
+</section>

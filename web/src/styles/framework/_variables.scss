@@ -1,0 +1,74 @@
+/* Fonts */
+/* Inter from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Satoshi from Fontshare */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+
+:root {
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Satoshi', sans-serif;
+}
+
+/* Colours */
+:root {
+  /* Default (light theme) */
+  --color-bg: #ffffff;
+  --color-surface: #fcfcfc;
+  --color-text: #1a1a1a;
+  --color-muted: #4a4a4a;
+  --color-border: #e0e0e0;
+
+  --color-primary: #3ac11d;  
+
+  --color-accent: #21c0e0;
+
+  --color-success: #78DA55;
+  --color-error: #DA5578;
+  --color-warning: #DA8755;
+  --color-info: #55BADA;
+
+  --color-footer-bg: #FAFAFA;
+  --color-footer-text: var(--color-muted);
+}
+
+/* Typography Tokens */
+:root {
+  --font-xs: 1.2rem;   /* 12px */
+  --font-sm: 1.4rem;   /* 14px */
+  --font-md: 1.6rem;   /* 16px - base */
+  --font-lg: 2.0rem;   /* 20px */
+  --font-xl: 2.4rem;   /* 24px */
+  --font-xxl: 3.2rem;  /* 32px */
+  --line-height-tight: 1.2;
+  --line-height-default: 1.5;
+  --line-height-loose: 1.75;
+}
+
+:root {
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* Spacing Tokens */
+:root {
+  --space-xxs: 0.4rem;  /* 4px */
+  --space-xs: 0.8rem;   /* 8px */
+  --space-sm: 1.2rem;   /* 12px */
+  --space-md: 1.6rem;   /* 16px */
+  --space-lg: 2.4rem;   /* 24px */
+  --space-xl: 3.2rem;   /* 32px */
+  --space-xxl: 4.8rem;  /* 48px */
+}
+
+/* Radius */
+:root {
+  --radius-default: 0.4rem;
+  --radius-xs: 0.2rem;   /* Subtle rounding */
+  --radius-sm: 0.4rem;   /* Default for buttons, inputs */
+  --radius-md: 0.8rem;   /* Cards, modals */
+  --radius-lg: 1.6rem;   /* Hero sections, overlays */
+  --radius-full: 9999px; /* Pills, avatars */
+}

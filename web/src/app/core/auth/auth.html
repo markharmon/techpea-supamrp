@@ -1,0 +1,47 @@
+
+<form [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="form">
+
+  <pea-logo></pea-logo>
+
+  <h2>{{ isSignUp() ? "Sign Up" : "Sign In" }}</h2>
+
+  <div class="field">
+    <label for="email">Email</label>
+    <input
+      id="email"
+      formControlName="email"
+      class="inputField"
+      type="email"
+      placeholder="Your email"
+    />
+  </div>
+
+  <div class="field">
+    <label for="password">Password</label>
+    <input
+      id="password"
+      formControlName="password"
+      class="inputField"
+      type="password"
+      placeholder="Your password"
+    />
+  </div>
+  
+  <div class="actions">
+    <button type="submit" class="button primary" [disabled]="loading()">
+      {{ loading() ? "Loading" : (isSignUp() ? "Sign Up" : "Sign In") }}
+    </button>
+  </div>
+  
+  <div class="more-actions">
+    @if(isSignUp()) {
+      <p>Already have an account? <a (click)="toggleSignUp()">Sign In</a></p>
+    } @else {
+      <p>Don't have an account? <a (click)="toggleSignUp()">Sign Up</a></p>
+    }
+
+    @if (!isSignUp()) {
+      <a (click)="forgotPassword()">Forgot Password?</a>
+    }
+  </div>
+</form>

@@ -1,0 +1,62 @@
+<section *peaLoading="loading()">
+  <h3>Work Orders</h3>
+
+  <div class="filters">
+    <span>Filter by Status:</span>
+    <div class="status-badges">
+      @for (status of availableStatuses; track status) {
+        <button type="button" 
+                class="pea-badge" 
+                [class.selected]="selectedStatuses().includes(status)"
+                [ngClass]="getStatusClass(status)"
+                (click)="toggleStatus(status)">
+          {{ status }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <table class="pea-table">
+    <thead>
+      <tr>
+        <th>Ref #</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (wo of workOrders(); track wo.id) {
+        <tr>
+          <td><a [routerLink]="['/work-orders', wo.id]">#{{ wo.reference_number.toString().padStart(4, '0') }}</a></td>
+          <td>{{ wo.description }}</td>
+          <td>
+            <span class="pea-badge" [ngClass]="getStatusClass(wo.status)">
+              {{ wo.status }}
+            </span>
+          </td>
+          <td>
+            <a [routerLink]="['/work-orders', wo.id]" class="button">Edit</a>
+          </td>
+        </tr>
+      }
+      @if (workOrders().length === 0) {
+        <tr>
+          <td colspan="3" class="text-center">No work orders found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <div class="actions" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <a routerLink="/work-orders/new" class="button primary">New Work Order</a>
+    </div>
+    
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span>Page {{ page() }} (Total {{ total() }})</span>
+      <button class="button" [disabled]="page() === 1" (click)="prevPage()">Previous</button>
+      <button class="button" [disabled]="!hasMore()" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+</section>

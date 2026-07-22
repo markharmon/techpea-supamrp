@@ -1,0 +1,46 @@
+
+<section *peaLoading="loading()">
+    <h2>Users</h2>
+
+
+    <table class="pea-table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Current Role</th>
+                <th>Assign Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (user of users(); track user.id) {
+                <tr [class.pending]="!user.staff_level_id">
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="pea-badge" [ngClass]="getRoleBadgeClass(user)">
+                            {{ user.staff_level ? user.staff_level.name : 'Pending Approval' }}
+                        </span>
+                    </td>
+                    <td class="form">
+                        <div class="field">
+                            <select (change)="updateRole(user.id, $event)">
+                                <option value="" disabled [selected]="!user.staff_level_id">Select Role</option>
+                                @for (role of staffLevels(); track role.id) {
+                                    <option 
+                                        [value]="role.id" 
+                                        [selected]="role.id === user.staff_level_id">
+                                        {{ role.name }}
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+            } @empty {
+                <tr>
+                    <td colspan="4">No users found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+</section>

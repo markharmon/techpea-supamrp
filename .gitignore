@@ -1,0 +1,28 @@
+/private.md
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Angular
+.angular/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+test-main.js
+*.js.map
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swo
+*.swp
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+/resources

@@ -1,0 +1,39 @@
+<form *peaLoading="loading()" [formGroup]="logForm" (ngSubmit)="submitLog()" class="form">
+  <h3>Log Production</h3>
+
+  <div class="field">
+    <label for="workOrder">Work Order</label>
+    <select id="workOrder" formControlName="work_order_id">
+      <option value="" disabled>Select a work order</option>
+      @for (wo of workOrders(); track wo.id) {
+        <option [value]="wo.id">#{{ wo.reference_number }} - {{ wo.description }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="profile">User</label>
+    <select id="profile" formControlName="profile_id">
+      <option value="" disabled>Select a user</option>
+      @for (profile of profiles(); track profile.id) {
+        <option [value]="profile.id">{{ profile.username || profile.email }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="work_time">Log time</label>
+    <input id="work_time" type="number" formControlName="work_time" min="0" />
+  </div>
+
+  <div class="field actions">
+    <button type="submit" class="button primary block" [disabled]="loading() || logForm.invalid">
+      {{ loading() ? "Updating ..." : "Update" }}
+    </button>
+    <button type="button" class="button secondary block" 
+            (click)="completeOrder()" 
+            [disabled]="loading() || !logForm.get('work_order_id')?.value">
+      Complete
+    </button>
+  </div>
+</form>

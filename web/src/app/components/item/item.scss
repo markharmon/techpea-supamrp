@@ -1,0 +1,18 @@
+.items {
+  .button {
+    height: 44px;
+  }
+}
+
+.group{
+  .left {
+    flex: 0.5;
+  }
+  .right {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
+    flex: 0.5;
+    gap: var(--space-sm);
+  }
+}

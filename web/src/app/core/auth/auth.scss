@@ -1,0 +1,26 @@
+:host {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+form {
+    max-width: 40em;
+    width: 100%;
+}
+
+pea-logo {
+    margin: 0 auto;
+}
+
+.more-actions {
+    display: flex;
+    flex-direction: column;
+
+    a {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+}

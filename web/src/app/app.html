@@ -1,0 +1,9 @@
+@if (session()) {
+  <pea-header></pea-header>
+}
+<main>
+  <router-outlet />
+</main>
+@if (session()) {
+  <pea-main-menu></pea-main-menu>
+}

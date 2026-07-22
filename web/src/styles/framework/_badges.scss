@@ -1,0 +1,21 @@
+.pea-badge {
+  padding: 0.25rem 0.5rem;
+  text-transform:uppercase;
+  font-weight: bold;
+  
+  &.success {
+    color: var(--color-success);
+  }
+  
+  &.info {
+    color: var(--color-info);
+  }
+  
+  &.danger {
+    color: var(--color-error);
+  }
+  
+  &.warning {
+    color: var(--color-warning);
+  }
+}

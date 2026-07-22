@@ -1,0 +1,173 @@
+<form [formGroup]="form" (ngSubmit)="save()" *peaLoading="loading()" class="form">
+  <h3>{{ isNew ? 'New Item' : 'Edit Item' }}</h3>
+  
+  <fieldset>
+    <legend>Item Details</legend>
+
+    <div class="group">
+      <div class="field">
+        <label>SKU</label>
+        <input type="text" formControlName="sku" placeholder="SKU-123">
+      </div>
+      <div class="field">
+        <label>Barcode</label>
+        <input type="text" formControlName="barcode" placeholder="">
+      </div>
+    </div>
+
+
+
+    <div class="group">
+      <div class="field left">
+        <label>Name</label>
+        <input type="text" formControlName="name" placeholder="Item Name">
+      </div>
+      <div class="right">
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="field left">
+          <label>Category</label>
+          <select formControlName="category_id">
+              <option [ngValue]="null">-- Select Category --</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+          </select>
+      </div>
+      <div class="right">
+        <div class="field">
+            <label>Current Stock</label>
+            <input type="number" formControlName="current_stock">
+        </div>
+        <div class="field">
+            <label>Price £</label>
+            <input type="number" formControlName="sales_price">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Description</label>
+      <textarea formControlName="description" rows="2"></textarea>
+    </div>
+
+    <div class="group">
+        <div class="checkbox-field">
+            <input type="checkbox" id="chk-sale" formControlName="is_saleable">
+            <label for="chk-sale">Saleable</label>
+        </div>
+        <div class="checkbox-field">
+            <input type="checkbox" id="chk-man" formControlName="is_manufactured">
+            <label for="chk-man">Manufactured</label>
+        </div>
+    </div>
+  </fieldset>
+
+  @if (form.get('is_manufactured')?.value) {
+  <fieldset>
+    <legend>Bill of Materials</legend>
+
+    
+    <div class="items" formArrayName="bom">
+      @for (item of bomControls; track $index) {
+        <div [formGroupName]="$index" class="item group">
+          <div class="field">
+            <select formControlName="child_item_id">
+              <option value="" disabled>Select Material/Component</option>
+              @for (opt of allItems(); track opt.id) {
+                  <!-- Don't verify strictly against itemId on form load, but logically shouldn't select self. 
+                        Handling that in template logic is messy, so skipping self-check for now. -->
+                <option [value]="opt.id">{{ opt.name }} ({{ opt.sku || 'No SKU' }})</option>
+              }
+            </select>
+          </div>
+          
+          <div class="field">
+            <input type="number" formControlName="quantity" min="0.0001">
+          </div>
+
+          <button type="button" class="button" (click)="removeBomItem($index)">Remove</button>
+        </div>
+      }
+      @if (bomControls.length === 0) {
+          <p class="empty-state">No materials added to BOM yet.</p>
+      }
+    </div>
+    <div class="actions">
+      <button type="button" class="button" (click)="addBomItem()">Add Material</button>
+    </div>
+  </fieldset>
+  }
+
+  <fieldset>
+    <legend>Vendor Details</legend>
+
+    <div class="group">
+        <div class="field">
+            <label>Vendor</label>
+            <select formControlName="vendor_id">
+                <option [ngValue]="null">-- Select Vendor --</option>
+                @for (v of vendors(); track v.id) {
+                  <option [value]="v.id">{{ v.name }}</option>
+                }
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Vendor SKU</label>
+            <input type="text" formControlName="vendor_sku">
+        </div>
+    </div>
+
+    <div class="group">
+        <div class="field left">
+          <label>Vendor Item Name</label>
+          <input type="text" formControlName="vendor_description">
+        </div>
+        <div class="right">
+          <div class="field">
+            <label>Unit</label>
+            <!-- <input type="text" formControlName="unit" placeholder="pcs"> -->
+              <select formControlName="unit">
+                  <option value="pcs">Pieces (pcs)</option>
+                  <option value="m">Meters (m)</option>
+                  <option value="kg">Kilograms (kg)</option>
+                  <option value="l">Liters (l)</option>
+              </select>
+          </div>
+          <div class="field">
+            <label>Cost £</label>
+            <input type="number" formControlName="cost_per_unit">
+          </div>
+        </div>
+    </div>
+
+    <div class="group">
+        <div class="field">
+            <label>Reorder Lvl</label>
+            <input type="number" formControlName="reorder_level">
+        </div>
+        <div class="field">
+            <label>Reorder Qty</label>
+            <input type="number" formControlName="reorder_quantity">
+        </div>
+        <div class="field">
+            <label>Pack Size</label>
+            <input type="number" formControlName="pack_size">
+        </div>
+        <div class="field">
+            <label>Weight</label>
+            <input type="number" formControlName="weight">
+        </div>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <button class="button" routerLink="/items">{{ form.dirty ? 'Cancel Changes' : 'Back to Item List' }}</button>
+    <button type="submit" class="button primary" [disabled]="form.invalid">Save</button>
+  </div>
+
+</form>
+

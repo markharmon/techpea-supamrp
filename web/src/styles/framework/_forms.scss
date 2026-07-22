@@ -1,0 +1,170 @@
+.form .field, .form .group {
+    label {
+        margin: var(--space-xs) 0;
+        font-weight: 600;
+    }
+}
+
+.form fieldset {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-default);
+    margin-bottom: var(--space-lg);
+
+    legend {
+        font-size: var(--font-lg);
+        font-weight: 700;
+        margin-bottom: var(--space-md);
+    }
+}
+
+.form .field {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--space-lg);
+    position: relative;
+
+    input, textarea, select {
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--font-md);
+        background-color: var(--color-surface);
+        border-radius: var(--radius-default);
+        border: 1px solid var(--color-border);
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    input {
+        &:focus-visible {
+            outline: none;
+            box-shadow: 0 0 2px rgba(0, 74, 84, 0.2);
+        }
+    }
+
+        // Select-specific styling
+    select {
+        // Remove default arrow
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        
+        // Custom arrow
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23686A6F' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right var(--space-md) center;
+        background-repeat: no-repeat;
+        background-size: 16px 16px;
+        
+        // Mobile optimization
+        min-height: 44px; // Apple's recommended touch target
+        cursor: pointer;
+        
+        // Better text handling on mobile
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        
+        // iOS specific fixes
+        border-radius: var(--radius-default); // Override iOS default
+        
+        &:focus-visible {
+            outline: none;
+            box-shadow: 
+                0 0 0 1px var(--color-primary),
+                0 0 8px rgba(0, 74, 84, 0.2);
+            
+            // Darken arrow on focus
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23004a54' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        }
+        
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: var(--color-border);
+        }
+        
+        // Better option styling (limited support)
+        option {
+            padding: var(--space-sm);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-weight: 400;
+        }
+    }
+
+
+    .validation {
+        position: absolute;
+        bottom: 0;
+        font-size: var(--font-xs);
+        color: var(--color-error);
+        padding: var(--space-xs);
+    }
+}
+
+.form .field .range {
+    display: flex;
+    gap: var(--space-xs);
+
+    * {
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+
+    input {
+        flex: 1;
+        padding: 0;
+        margin: 0;
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: var(--color-surface);
+        height: 12px;
+        margin-top: 6px;
+
+        &::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            -webkit-appearance: none;
+
+            cursor: ew-resize;
+            background: var(--color-primary);
+            border-radius: 50%;
+        }
+    }
+
+    .value {
+        margin-left: auto;
+        min-width: 24px;
+        text-align: center;
+    }
+}
+
+.form .group {
+    display: flex;
+    width: 100%;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+
+    label {
+        flex: 100%;
+    }
+
+    .field {
+        flex-grow: 1;
+        flex-basis: 0;
+        width: 0;
+    }
+}
+
+.form textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+}
+
+
+.form .actions {
+    display: flex;
+    justify-content: flex-end; // push actions to the end (right)
+    gap: var(--space-sm);  
+    margin-top: var(--space-md);
+    flex-direction: row;
+}

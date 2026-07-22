@@ -1,0 +1,111 @@
+/* Backdrop overlay */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Main menu panel */
+.main-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: var(--color-surface);
+  z-index: 999;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  
+  /* Mobile: full screen */
+  width: 100vw;
+  
+  /* Desktop: fixed width and fits between header & nav */
+  @media (min-width: 768px) {
+    width: 320px;
+  }
+
+  @media (max-width: 599px) and (orientation: portrait) {
+    padding-bottom: 80px;
+  }
+  
+  &.open {
+    transform: translateX(0);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Menu header */
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+
+  * {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
+.cdk-menu .button {
+  &:nth-last-child(2), &:last-child {
+    border-bottom: none;
+  }
+}
+
+.menu-bottom {
+    border-top: 1px solid var(--color-border);
+    margin-top: auto;
+}
+
+/* Menu items */
+.menu-item {
+  display: block;
+  padding: var(--space-sm, 1rem);
+  color: var(--color-text, #333);
+  text-decoration: none;
+  border-radius: var(--radius-default, 8px);
+  margin-bottom: var(--space-xs, 0.5rem);
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: var(--color-hover, rgba(0, 0, 0, 0.05));
+  }
+  
+  &:active {
+    background-color: var(--color-active, rgba(0, 0, 0, 0.1));
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+pea-logo {
+    height: 32px;
+    max-width: 256px;
+    margin-left: var(--space-sm);
+}
+
+.pea-menu {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+
+  h2 {
+    padding: var(--space-md);
+    padding-left: 0;
+    font-size: var(--font-md);
+    margin: 0;
+  }
+}

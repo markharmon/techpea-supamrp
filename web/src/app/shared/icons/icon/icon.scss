@@ -1,0 +1,22 @@
+:host {
+    --icon-size: 24px; /* default */
+    width: var(--icon-size);
+    height: var(--icon-size);
+
+    svg {
+        width: var(--icon-size);
+        height: var(--icon-size);
+    }
+
+    /* Size variants */
+    &.size-14 { --icon-size: 14px; }
+    &.size-16 { --icon-size: 16px; }
+    &.size-18 { --icon-size: 18px; }
+    &.size-20 { --icon-size: 20px; }
+    &.size-22 { --icon-size: 22px; }
+    &.size-24 { --icon-size: 24px; }
+    &.size-32 { --icon-size: 32px; }
+    &.size-36 { --icon-size: 36px; }
+    &.size-48 { --icon-size: 48px; }
+    &.size-64 { --icon-size: 64px; }
+}

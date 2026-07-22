@@ -1,0 +1,53 @@
+<form *peaLoading="loading()" [formGroup]="updateProfileForm" (ngSubmit)="updateProfile()" class="form">
+  <app-avatar [avatarUrl]="this.avatarUrl" (upload)="updateAvatar($event)"></app-avatar>
+
+  <div class="field">
+    <label for="email">Email</label>
+    <input id="email" type="text" [value]="session()?.user?.email" disabled />
+  </div>
+
+  <div class="field">
+    <label for="username">Name</label>
+    <input formControlName="username" id="username" type="text" />
+  </div>
+
+  <div class="field">
+    <label for="website">Website</label>
+    <input formControlName="website" id="website" type="url" />
+  </div>
+
+  <div class="field">
+    <button type="submit" class="button primary block" [disabled]="loading()">
+      {{ loading() ? "Loading ..." : "Update Profile" }}
+    </button>
+  </div>
+
+  <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #333;">
+
+  <div class="field">
+    <label for="new_password">New Password</label>
+    <input 
+      #newPasswordInput
+      id="new_password" 
+      type="password" 
+      placeholder="Enter new password to change" 
+    />
+  </div>
+
+  <div class="field">
+    <button 
+      type="button" 
+      class="button block" 
+      [disabled]="loading()"
+      (click)="updatePassword(newPasswordInput.value); newPasswordInput.value = ''"
+    >
+      Update Password
+    </button>
+  </div>
+
+  <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #333;">
+
+  <div>
+    <button class="button block" (click)="signOut()">Sign Out</button>
+  </div>
+</form>

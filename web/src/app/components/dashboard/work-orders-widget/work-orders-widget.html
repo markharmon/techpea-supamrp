@@ -1,0 +1,44 @@
+<section *peaLoading="loading()">
+  <div class="dashboard-header">
+    <h3>Latest Work Orders</h3>
+    <a routerLink="/work-orders" class="button">View More</a>
+  </div>
+
+  <div class="pea-table-container">
+    <table class="pea-table">
+      <thead>
+        <tr>
+          <th>Ref #</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (wo of workOrders(); track wo.id) {
+          <tr>
+            <td>
+              <a [routerLink]="['/work-orders', wo.id]">
+                #{{ wo.reference_number.toString().padStart(4, '0') }}
+              </a>
+            </td>
+            <td>{{ wo.description }}</td>
+            <td>
+              <span class="pea-badge" [ngClass]="getStatusClass(wo.status)">
+                {{ wo.status }}
+              </span>
+            </td>
+            <td>
+              <a [routerLink]="['/work-orders', wo.id]" class="button">Edit</a>
+            </td>
+          </tr>
+        }
+        @if (workOrders().length === 0) {
+          <tr>
+            <td colspan="4" class="text-center">No work orders found.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

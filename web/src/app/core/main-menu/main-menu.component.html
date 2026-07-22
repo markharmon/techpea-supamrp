@@ -1,0 +1,29 @@
+<!-- Backdrop overlay -->
+@if (mainMenuService.isOpen()) {
+<div class="backdrop" (click)="closeMenu()"></div>
+}
+
+<!-- Main menu panel -->
+<aside class="main-menu" [class.open]="mainMenuService.isOpen()">
+  <header class="menu-header">
+    <pea-logo></pea-logo>
+    <button class="button icon round ghost" (click)="closeMenu()" aria-label="Close menu">
+      <pea-icon-close></pea-icon-close>
+    </button>
+  </header>
+
+  <nav cdkMenu class="pea-menu">
+    <a cdkMenuItem class="button ghost" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Production Log</a>
+    <a cdkMenuItem class="button ghost" routerLink="/work-orders" routerLinkActive="active" (click)="closeMenu()">Work Orders</a>
+    <a cdkMenuItem class="button ghost" routerLink="/items" routerLinkActive="active" (click)="closeMenu()">Items</a>
+    
+    @if (permissions.has('admin')()) {
+        <a cdkMenuItem class="button ghost" routerLink="/users" routerLinkActive="active" (click)="closeMenu()">Users</a>
+    }
+  </nav>
+
+  <nav cdkMenu class="menu-bottom">
+    <a cdkMenuItem class="button ghost" routerLink="/account" routerLinkActive="active" (click)="closeMenu()">Account</a>
+    <a cdkMenuItem class="button ghost sign-out" (click)="signOut()">Sign Out</a>
+  </nav>
+</aside>

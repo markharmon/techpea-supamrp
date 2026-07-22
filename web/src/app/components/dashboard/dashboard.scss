@@ -1,0 +1,24 @@
+.dashboard-grid {
+	display: grid;
+	gap: 1.25rem;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-card {
+	min-width: 0;
+}
+
+.dashboard-card-wide {
+	grid-column: 1 / -1;
+}
+
+@media (max-width: 1024px) {
+	.dashboard-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.dashboard-card-wide {
+		grid-column: auto;
+	}
+}
+

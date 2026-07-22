@@ -1,0 +1,38 @@
+<section *peaLoading="loading()">
+  <div class="dashboard-header">
+    <h3>{{ title() }}</h3>
+    <a routerLink="/items" class="button">View More</a>
+  </div>
+
+  <div class="pea-table-container">
+    <table class="pea-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Name</th>
+          <th align="right">Stock</th>
+          <th align="right">Reorder</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td>{{ item.sku }}</td>
+            <td>{{ item.name }}</td>
+            <td align="right">{{ item.current_stock | number:'1.0-2' }}</td>
+            <td align="right">{{ item.reorder_level | number:'1.0-2' }}</td>
+            <td align="right">
+              <a [routerLink]="['/items', item.id]" class="button">Edit</a>
+            </td>
+          </tr>
+        }
+        @if (items().length === 0) {
+          <tr>
+            <td colspan="5" class="text-center">No low stock items found.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

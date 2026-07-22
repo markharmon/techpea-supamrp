@@ -1,0 +1,30 @@
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  .status-badges {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .pea-badge {
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.6;
+    transition: all 0.2s;
+    
+    &:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+    
+    &.selected {
+      opacity: 1;
+      border-color: rgba(0,0,0,0.5); /* Or a highlight color */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+  }
+}
