@@ -118,8 +118,7 @@ export class ProductionLogComponent implements OnInit {
            throw new Error('Profile not found')
       }
 
-      // Wait, SupabaseService.profile() selects `username, website, avatar_url`.
-      // It DOES NOT select `id`.
+      // SupabaseService.profile() now selects id, username, and avatar_url.
       // The schema says `profile.id` is the primary key.
       // Usually profile.id IS the user.id in Supabase patterns (auth.users.id maps to profiles.id).
       // Let's assume profile_id = user.id.

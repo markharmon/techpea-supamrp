@@ -12,11 +12,6 @@
   </div>
 
   <div class="field">
-    <label for="website">Website</label>
-    <input formControlName="website" id="website" type="url" />
-  </div>
-
-  <div class="field">
     <button type="submit" class="button primary block" [disabled]="loading()">
       {{ loading() ? "Loading ..." : "Update Profile" }}
     </button>
