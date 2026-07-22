@@ -55,6 +55,17 @@
               ],
               "outputHashing": "all"
             },
+            "local": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.local.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -68,6 +79,9 @@
           "configurations": {
             "production": {
               "buildTarget": "techpea-supabase-demo:build:production"
+            },
+            "local": {
+              "buildTarget": "techpea-supabase-demo:build:local"
             },
             "development": {
               "buildTarget": "techpea-supabase-demo:build:development"

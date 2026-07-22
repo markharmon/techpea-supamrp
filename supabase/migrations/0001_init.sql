@@ -7,6 +7,7 @@ create table if not exists public.staff_level (
     id uuid primary key default gen_random_uuid(),
     name text not null unique,
     permission_name text,
+    created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
 
@@ -25,6 +26,7 @@ create table if not exists public.profiles (
     avatar_url text,
     email text,
     staff_level_id uuid references public.staff_level(id) on delete set null,
+    created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
 
@@ -32,7 +34,8 @@ create table if not exists public.profiles (
 create table if not exists public.item_categories (
     id uuid primary key default gen_random_uuid(),
     name text not null unique,
-    created_at timestamp with time zone default now()
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
 );
 
 create table if not exists public.vendors (
@@ -43,7 +46,8 @@ create table if not exists public.vendors (
     phone text,
     website text,
     notes text,
-    created_at timestamp with time zone default now()
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
 );
 
 insert into public.vendors (name)
@@ -82,6 +86,7 @@ create table if not exists public.bom (
     child_item_id uuid not null references public.items(id) on delete restrict,
     quantity numeric not null check (quantity > 0),
     created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
     unique (parent_item_id, child_item_id)
 );
 
@@ -92,7 +97,8 @@ create table if not exists public.work_orders (
     status text not null default 'planned' check (status in ('planned', 'in_progress', 'completed', 'cancelled')),
     notes text,
     due_date date,
-    created_at timestamp with time zone default now()
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
 );
 
 create table if not exists public.work_order_items (
@@ -101,6 +107,7 @@ create table if not exists public.work_order_items (
     item_id uuid not null references public.items(id) on delete restrict,
     quantity_planned integer not null check (quantity_planned > 0),
     created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
     unique (work_order_id, item_id)
 );
 
@@ -109,7 +116,8 @@ create table if not exists public.work_logs (
     work_order_id uuid not null references public.work_orders(id) on delete cascade,
     profile_id uuid references public.profiles(id) on delete set null,
     work_time numeric default 0,
-    timestamp timestamp with time zone default now()
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
 );
 
 -- 5. Security helpers and business functions
@@ -130,6 +138,71 @@ set search_path = public
 as $$
     select coalesce(auth.jwt() -> 'app_metadata' ->> 'permission', '') = any (allowed_permissions);
 $$;
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$;
+
+drop trigger if exists on_set_updated_at_staff_level on public.staff_level;
+create trigger on_set_updated_at_staff_level
+before update on public.staff_level
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_profiles on public.profiles;
+create trigger on_set_updated_at_profiles
+before update on public.profiles
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_item_categories on public.item_categories;
+create trigger on_set_updated_at_item_categories
+before update on public.item_categories
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_vendors on public.vendors;
+create trigger on_set_updated_at_vendors
+before update on public.vendors
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_items on public.items;
+create trigger on_set_updated_at_items
+before update on public.items
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_bom on public.bom;
+create trigger on_set_updated_at_bom
+before update on public.bom
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_work_orders on public.work_orders;
+create trigger on_set_updated_at_work_orders
+before update on public.work_orders
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_work_order_items on public.work_order_items;
+create trigger on_set_updated_at_work_order_items
+before update on public.work_order_items
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists on_set_updated_at_work_logs on public.work_logs;
+create trigger on_set_updated_at_work_logs
+before update on public.work_logs
+for each row
+execute function public.set_updated_at();
 
 create or replace function public.current_profile_staff_level_id()
 returns uuid
@@ -299,7 +372,8 @@ begin
     perform set_config('app.complete_work_order', 'true', true);
 
     update public.work_orders
-    set status = 'completed'
+    set status = 'completed',
+        updated_at = now()
     where id = p_work_order_id;
 
     for wo_item in
@@ -308,7 +382,8 @@ begin
         where work_order_id = p_work_order_id
     loop
         update public.items
-        set current_stock = current_stock + wo_item.quantity_planned
+        set current_stock = current_stock + wo_item.quantity_planned,
+            updated_at = now()
         where id = wo_item.item_id;
 
         for bom_record in
@@ -334,7 +409,8 @@ begin
 
             update public.items
             set current_stock = current_stock - required_stock,
-                reserved_stock = reserved_stock - required_stock
+                reserved_stock = reserved_stock - required_stock,
+                updated_at = now()
             where id = bom_record.child_item_id;
         end loop;
     end loop;
@@ -400,7 +476,8 @@ begin
         required_stock := bom_record.quantity * p_quantity_planned;
 
         update public.items
-        set reserved_stock = reserved_stock + required_stock
+        set reserved_stock = reserved_stock + required_stock,
+            updated_at = now()
         where id = bom_record.child_item_id;
     end loop;
 end;
@@ -439,7 +516,8 @@ begin
         end if;
 
         update public.items
-        set reserved_stock = reserved_stock - required_stock
+        set reserved_stock = reserved_stock - required_stock,
+            updated_at = now()
         where id = bom_record.child_item_id;
     end loop;
 end;

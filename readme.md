@@ -16,16 +16,21 @@ Techpea SupaMRP is an Angular template for a Supabase MRP.
 2. In the security section select "Enable Data API".
 3. Un select "Automatically expose new tables".
 4. Select "Enable automatic RLS".
-5. Go to Project Settings -> General and copy the project id and copy it into the supabaseUrl property in web\src\environments\environment.ts.
-6. Go to Project Settings -> API keys and copy the **Publishable key** into the supabaseKey property.
+5. Go to Project Settings -> General and copy your project URL.
+6. Go to Project Settings -> API Keys and copy the **Publishable key**.
+7. Put both values in `web/src/environments/environment.local.ts` (this file is gitignored and not committed).
 
 ```js
 export const environment = {
   production: false,
-  supabaseUrl: 'https://<your_project_id>.supabase.co',
-  supabaseKey: '<your_publishable key>',
+   supabaseUrl: 'https://<your_project_id>.supabase.co',
+   supabaseKey: '<your_publishable_key>',
 }
 ```
+
+Important:
+- Keep `web/src/environments/environment.ts` and `web/src/environments/environment.prod.ts` empty in Git.
+- Only set real values in `web/src/environments/environment.local.ts`.
 
 ### 2. Supabase local setup
 
@@ -46,7 +51,7 @@ export const environment = {
    supabase db push
    ```
 
-### 2. Web setup
+### 3. Web setup
 
 1.  Navigate to the `web/` directory:
     ```bash
@@ -57,16 +62,16 @@ export const environment = {
     npm install
     ```
 
-### 3. Running the Application
+### 4. Running the Application
 
 1.  Navigate to the `web/` directory (if not already in it):
     ```bash
     cd web
     ```
 
-2. Start the development server:
+2. Start the development server using local environment replacement:
     ```bash
-    npm start
+   ng serve --configuration local
     ```
 
 Navigate to `http://localhost:4300/`. The application will automatically reload if you change any of the source files.

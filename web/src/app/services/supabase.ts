@@ -172,7 +172,7 @@ export class SupabaseService {
   }
 
   async getLatestActiveWorkOrders(limit: number = 5) {
-    const baseQuery = this.supabase
+    const { data, error } = await this.supabase
       .from('work_orders')
       .select(`
         id,
@@ -186,42 +186,12 @@ export class SupabaseService {
         )
       `)
       .neq('status', 'completed')
+      .neq('status', 'cancelled')
+      .order('updated_at', { ascending: false })
       .limit(limit)
 
-    const { data, error } = await baseQuery.order('updated_at', { ascending: false })
-
     if (error) {
-      const { data: fallbackData, error: fallbackError } = await this.supabase
-        .from('work_orders')
-        .select(`
-          id,
-          reference_number,
-          status,
-          created_at,
-          work_order_items (
-            quantity_planned,
-            items ( name )
-          )
-        `)
-        .neq('status', 'completed')
-        .order('created_at', { ascending: false })
-        .limit(limit)
-
-      if (fallbackError || !fallbackData) {
-        return { data: null, error: fallbackError || error }
-      }
-
-      return {
-        data: fallbackData.map(wo => ({
-          id: wo.id,
-          reference_number: wo.reference_number,
-          status: wo.status,
-          description: (wo.work_order_items || [])
-            .map((woi: any) => `${woi.items?.name || 'Unknown'} (${woi.quantity_planned})`)
-            .join(', ')
-        })),
-        error: null
-      }
+      return { data: null, error }
     }
 
     if (!data) {
@@ -303,11 +273,21 @@ export class SupabaseService {
   }
 
   upsertItem(item: any) {
-    return this.supabase.from('items').upsert(item).select().single()
+    const payload = {
+      ...item,
+      updated_at: new Date(),
+    }
+
+    return this.supabase.from('items').upsert(payload).select().single()
   }
 
   upsertBom(bomItems: any[]) {
-      return this.supabase.from('bom').upsert(bomItems)
+      const payload = bomItems.map(item => ({
+        ...item,
+        updated_at: new Date(),
+      }))
+
+      return this.supabase.from('bom').upsert(payload)
   }
 
   deleteBomItems(ids: string[]) {
@@ -335,11 +315,21 @@ export class SupabaseService {
   }
 
   updateWorkOrder(id: string, wo: WorkOrderDetail) {
-    return this.supabase.from('work_orders').update(wo).eq('id', id).select().single()
+    const payload = {
+      ...wo,
+      updated_at: new Date(),
+    }
+
+    return this.supabase.from('work_orders').update(payload).eq('id', id).select().single()
   }
 
   upsertWorkOrderItems(items: WorkOrderItem[]) {
-      return this.supabase.from('work_order_items').upsert(items)
+      const payload = items.map(item => ({
+        ...item,
+        updated_at: new Date(),
+      }))
+
+      return this.supabase.from('work_order_items').upsert(payload)
   }
 
   deleteWorkOrderItems(ids: string[]) {
@@ -353,7 +343,7 @@ export class SupabaseService {
   setWorkOrderInProgress(workOrderId: string) {
     return this.supabase
       .from('work_orders')
-      .update({ status: 'in_progress' })
+      .update({ status: 'in_progress', updated_at: new Date() })
       .eq('id', workOrderId) 
   }
 
@@ -389,7 +379,7 @@ export class SupabaseService {
   updateProfileStaffLevel(userId: string, staffLevelId: string) {
     return this.supabase
       .from('profiles')
-      .update({ staff_level_id: staffLevelId })
+      .update({ staff_level_id: staffLevelId, updated_at: new Date() })
       .eq('id', userId);
   }
 }
