@@ -5,7 +5,7 @@ Techpea SupaMRP is an Angular template for a Supabase MRP.
 ## Prerequisites
 
 - **Git**
-- **Node.js** (v18 or higher recommended)
+- **Node.js** (minimum version of v20.19 or v22.12)
 - **Supabase Account** (for the backend database and authentication)
 
 ## Getting Started
@@ -18,7 +18,8 @@ Techpea SupaMRP is an Angular template for a Supabase MRP.
 4. Select "Enable automatic RLS".
 5. Go to Project Settings -> General and copy your project URL.
 6. Go to Project Settings -> API Keys and copy the **Publishable key**.
-7. Put both values in `web/src/environments/environment.local.ts` (this file is gitignored and not committed).
+7. Create file `web/src/environments/environment.local.ts`
+8. Put both values in `web/src/environments/environment.local.ts` (this file is gitignored and not committed).
 
 ```js
 export const environment = {
@@ -44,6 +45,7 @@ Important:
 3. ```bash 
    supabase login
    ```
+   Note: You will see amessage to press Enter to open browser and you will be asked to enter the verification code diplayed on browser, in Terminal
 4. ```bash 
    supabase link --project-ref <your-project-id>
    ```
@@ -53,7 +55,7 @@ Important:
 
 ### 3. Web setup
 
-1.  Navigate to the `web/` directory:
+1.  Navigate to the `web/` directory (if not already in it):
     ```bash
     cd web
     ```
@@ -71,7 +73,7 @@ Important:
 
 2. Start the development server using local environment replacement:
     ```bash
-   ng serve --configuration local
+    npm start
     ```
 
 Navigate to `http://localhost:4300/`. The application will automatically reload if you change any of the source files.
