@@ -1,0 +1,32 @@
+<section *peaLoading="loading()">
+  <h3>Categories</h3>
+
+  <div class="actions">
+    <button class="button primary" routerLink="/categories/new">New Category</button>
+  </div>
+
+  <table class="pea-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (category of categories(); track category.id) {
+      <tr>
+        <td>{{ category.name }}</td>
+        <td class="row-actions">
+          <button class="button" [routerLink]="['/categories', category.id]">Edit</button>
+          <button class="button" type="button" (click)="deleteCategory(category.id)">Delete</button>
+        </td>
+      </tr>
+      }
+      @if (categories().length === 0) {
+      <tr>
+        <td colspan="2">No categories found.</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,17 @@
+<form [formGroup]="form" (ngSubmit)="save()" *peaLoading="loading()" class="form">
+  <h3>{{ isNew ? 'New Category' : 'Edit Category' }}</h3>
+
+  <fieldset>
+    <legend>Category Details</legend>
+
+    <div class="field left">
+      <label>Name</label>
+      <input type="text" formControlName="name" placeholder="Category name">
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <a class="button" routerLink="/categories">{{ form.dirty ? 'Cancel Changes' : 'Back to Categories' }}</a>
+    <button type="submit" class="button primary" [disabled]="form.invalid">Save</button>
+  </div>
+</form>
