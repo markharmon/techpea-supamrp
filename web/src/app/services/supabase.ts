@@ -215,7 +215,7 @@ export class SupabaseService {
   }
 
   getManufacturedItems() {
-    return this.supabase.from('items').select('id, name, sku, size, colour')
+    return this.supabase.from('items').select('id, name, sku')
       .eq('is_manufactured', true)
       .order('name')
       .order('sku')
