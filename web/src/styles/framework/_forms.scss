@@ -161,10 +161,11 @@
 }
 
 
-.form .actions {
+.form .actions, section .actions {
     display: flex;
     justify-content: flex-end; // push actions to the end (right)
     gap: var(--space-sm);  
     margin-top: var(--space-md);
     flex-direction: row;
+    align-items: center;
 }

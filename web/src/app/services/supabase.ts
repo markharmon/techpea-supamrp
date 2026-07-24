@@ -140,6 +140,34 @@ export class SupabaseService {
     return this.supabase.from('item_categories').select('*').order('name')
   }
 
+  getAllCategories() {
+    return this.supabase.from('item_categories').select('*').order('name')
+  }
+
+  getCategory(id: string) {
+    return this.supabase
+      .from('item_categories')
+      .select('*')
+      .eq('id', id)
+      .single()
+  }
+
+  upsertCategory(category: any) {
+    const payload = {
+      ...category,
+      updated_at: new Date(),
+    }
+
+    return this.supabase.from('item_categories').upsert(payload).select().single()
+  }
+
+  deleteCategory(id: string) {
+    return this.supabase
+      .from('item_categories')
+      .delete()
+      .eq('id', id)
+  }
+
   getVendors() {
     return this.supabase.from('vendors').select('*').order('name')
   }

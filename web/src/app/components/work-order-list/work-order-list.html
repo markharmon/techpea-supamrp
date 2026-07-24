@@ -1,6 +1,10 @@
 <section *peaLoading="loading()">
   <h3>Work Orders</h3>
 
+  <div class="actions">
+      <a routerLink="/work-orders/new" class="button primary">New Work Order</a>
+  </div>
+
   <div class="filters">
     <span>Filter by Status:</span>
     <div class="status-badges">
@@ -48,15 +52,9 @@
     </tbody>
   </table>
 
-  <div class="actions" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-    <div>
-      <a routerLink="/work-orders/new" class="button primary">New Work Order</a>
-    </div>
-    
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <span>Page {{ page() }} (Total {{ total() }})</span>
-      <button class="button" [disabled]="page() === 1" (click)="prevPage()">Previous</button>
-      <button class="button" [disabled]="!hasMore()" (click)="nextPage()">Next</button>
-    </div>
+  <div class="actions">
+    <span>Page {{ page() }} (Total {{ total() }})</span>
+    <button class="button" [disabled]="page() === 1" (click)="prevPage()">Previous</button>
+    <button class="button" [disabled]="!hasMore()" (click)="nextPage()">Next</button>
   </div>
 </section>

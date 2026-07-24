@@ -19,6 +19,7 @@
     <a cdkMenuItem class="button ghost" routerLink="/items" routerLinkActive="active" (click)="closeMenu()">Items</a>
     
     @if (permissions.has('admin')()) {
+      <a cdkMenuItem class="button ghost" routerLink="/categories" routerLinkActive="active" (click)="closeMenu()">Categories</a>
         <a cdkMenuItem class="button ghost" routerLink="/users" routerLinkActive="active" (click)="closeMenu()">Users</a>
     }
   </nav>
