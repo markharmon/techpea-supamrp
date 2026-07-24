@@ -4,6 +4,9 @@ import { LoadingDirective } from '../../shared/loading/loading.directive'
 import { NgClass } from '@angular/common'
 import { RouterLink } from '@angular/router'
 
+type WorkOrderSortKey = 'reference_number' | 'description' | 'status'
+type SortDirection = 'asc' | 'desc'
+
 @Component({
   selector: 'app-work-orders-list',
   standalone: true,
@@ -22,6 +25,8 @@ export class WorkOrderListComponent implements OnInit {
   pageSize = signal(10)
   total = signal(0)
   hasMore = signal(false)
+  sortKey = signal<WorkOrderSortKey>('reference_number')
+  sortDirection = signal<SortDirection>('desc')
 
   availableStatuses = ['planned', 'in_progress', 'completed', 'cancelled']
   selectedStatuses = signal<string[]>([])
@@ -37,7 +42,9 @@ export class WorkOrderListComponent implements OnInit {
       const { data, count, error } = await this.supabase.getAllWorkOrders(
         this.page(), 
         this.pageSize(),
-        this.selectedStatuses()
+        this.selectedStatuses(),
+        this.sortKey(),
+        this.sortDirection(),
       )
       if (error) throw error
       
@@ -78,6 +85,26 @@ export class WorkOrderListComponent implements OnInit {
     this.persistFilters()
     this.page.set(1)
     await this.loadOrders()
+  }
+
+  async sortBy(key: WorkOrderSortKey) {
+    if (this.sortKey() === key) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc')
+    } else {
+      this.sortKey.set(key)
+      this.sortDirection.set('asc')
+    }
+
+    this.page.set(1)
+    await this.loadOrders()
+  }
+
+  sortLabel(key: WorkOrderSortKey) {
+    if (this.sortKey() !== key) {
+      return 'sort'
+    }
+
+    return this.sortDirection() === 'asc' ? 'asc' : 'desc'
   }
 
   private restoreFilters() {

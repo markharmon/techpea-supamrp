@@ -181,7 +181,13 @@ export class SupabaseService {
       .order('reference_number', { ascending: true })
   }
 
-  getAllWorkOrders(page: number = 1, pageSize: number = 50, status?: string[]) {
+  getAllWorkOrders(
+    page: number = 1,
+    pageSize: number = 50,
+    status?: string[],
+    sortBy: 'reference_number' | 'description' | 'status' = 'reference_number',
+    sortDirection: 'asc' | 'desc' = 'desc',
+  ) {
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
@@ -194,7 +200,7 @@ export class SupabaseService {
     }
 
     return query
-      .order('reference_number', { ascending: false })
+      .order(sortBy, { ascending: sortDirection === 'asc' })
       .range(from, to)
   }
 
