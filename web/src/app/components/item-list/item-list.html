@@ -8,11 +8,31 @@
     <table class="pea-table">
         <thead>
             <tr>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Name</th>
-                <th align="right">Qty</th>
-                <th align="right">Cost</th>
+                <th>
+                    <button type="button" class="sort-button" (click)="sortBy('sku')">
+                        SKU <span class="sort-indicator">{{ sortLabel('sku') }}</span>
+                    </button>
+                </th>
+                <th>
+                    <button type="button" class="sort-button" (click)="sortBy('category_name')">
+                        Category <span class="sort-indicator">{{ sortLabel('category_name') }}</span>
+                    </button>
+                </th>
+                <th>
+                    <button type="button" class="sort-button" (click)="sortBy('name')">
+                        Name <span class="sort-indicator">{{ sortLabel('name') }}</span>
+                    </button>
+                </th>
+                <th align="right">
+                    <button type="button" class="sort-button sort-button-right" (click)="sortBy('current_stock')">
+                        Qty <span class="sort-indicator">{{ sortLabel('current_stock') }}</span>
+                    </button>
+                </th>
+                <th align="right">
+                    <button type="button" class="sort-button sort-button-right" (click)="sortBy('cost_per_unit')">
+                        Cost <span class="sort-indicator">{{ sortLabel('cost_per_unit') }}</span>
+                    </button>
+                </th>
                 <th></th>
             </tr>
         </thead>

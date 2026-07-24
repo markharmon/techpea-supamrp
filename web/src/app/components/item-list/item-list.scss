@@ -1,0 +1,22 @@
+.sort-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	border: 0;
+	background: transparent;
+	padding: 0;
+	font: inherit;
+	font-weight: 700;
+	color: inherit;
+	cursor: pointer;
+}
+
+.sort-button-right {
+	margin-left: auto;
+}
+
+.sort-indicator {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	opacity: 0.7;
+}
