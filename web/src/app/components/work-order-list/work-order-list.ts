@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router'
 })
 export class WorkOrderListComponent implements OnInit {
   private supabase = inject(SupabaseService)
+  private readonly filterStorageKey = 'work-order-list:selected-statuses'
 
   loading = signal(false)
   workOrders = signal<any[]>([])
@@ -26,6 +27,7 @@ export class WorkOrderListComponent implements OnInit {
   selectedStatuses = signal<string[]>([])
 
   async ngOnInit() {
+    this.restoreFilters()
     await this.loadOrders()
   }
 
@@ -73,8 +75,40 @@ export class WorkOrderListComponent implements OnInit {
         return [...current, status]
       }
     })
+    this.persistFilters()
     this.page.set(1)
     await this.loadOrders()
+  }
+
+  private restoreFilters() {
+    try {
+      const stored = localStorage.getItem(this.filterStorageKey)
+      if (!stored) {
+        return
+      }
+
+      const parsed = JSON.parse(stored)
+      if (!Array.isArray(parsed)) {
+        return
+      }
+
+      const validStatuses = parsed.filter(
+        (status): status is string =>
+          typeof status === 'string' && this.availableStatuses.includes(status),
+      )
+
+      this.selectedStatuses.set(validStatuses)
+    } catch {
+      // Ignore malformed localStorage payloads and continue with defaults.
+    }
+  }
+
+  private persistFilters() {
+    try {
+      localStorage.setItem(this.filterStorageKey, JSON.stringify(this.selectedStatuses()))
+    } catch {
+      // Ignore storage failures (for example, private mode quota limits).
+    }
   }
 
   getStatusClass(status: string): string {
