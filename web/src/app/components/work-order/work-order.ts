@@ -2,13 +2,14 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core'
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
-import { SupabaseService, Item, WorkOrderItem } from '../../services/supabase'
+import { SupabaseService, Item, WorkOrderItem, WorkOrderLog } from '../../services/supabase'
 import { LoadingDirective } from '../../shared/loading/loading.directive'
+import { WorkOrderLogComponent } from '../work-order-log/work-order-log'
 
 @Component({
   selector: 'app-work-order',
   standalone: true,
-  imports: [ReactiveFormsModule, LoadingDirective, RouterLink, FormsModule],
+  imports: [ReactiveFormsModule, LoadingDirective, RouterLink, FormsModule, WorkOrderLogComponent],
   templateUrl: './work-order.html',
   styleUrl: './work-order.scss'
 })
@@ -20,6 +21,7 @@ export class WorkOrderComponent implements OnInit {
 
   public loading = signal(false)
   public items = signal<Item[]>([])
+  public workOrderLogs = signal<WorkOrderLog[]>([])
   public activeDropdown = signal<number | null>(null)
 
   // 1. Maintain an array of search terms (one per row)
@@ -79,8 +81,16 @@ export class WorkOrderComponent implements OnInit {
   async loadOrder(id: string) {
     try {
       this.loading.set(true)
-      const { data, error } = await this.supabase.getWorkOrder(id)
-      if (error) throw error
+      const [orderResponse, logsResponse] = await Promise.all([
+        this.supabase.getWorkOrder(id),
+        this.supabase.getWorkOrderLogs(id),
+      ])
+
+      if (orderResponse.error) throw orderResponse.error
+      if (logsResponse.error) throw logsResponse.error
+
+      const data = orderResponse.data
+      this.workOrderLogs.set((logsResponse.data || []) as WorkOrderLog[])
 
       if (data) {
         this.reference.set(data.reference_number.toString().padStart(4, '0'));

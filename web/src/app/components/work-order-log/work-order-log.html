@@ -1,0 +1,32 @@
+<fieldset>
+  <legend>Work Order Logs</legend>
+
+  @if (logs().length === 0) {
+    <p>No production logs recorded yet.</p>
+  } @else {
+    <table class="pea-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>User</th>
+          <th align="right">Logged Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of logs(); track log.id) {
+          <tr>
+            <td>{{ log.created_at | date:'dd MMM yyyy, HH:mm' }}</td>
+            <td>{{ log.profiles?.username || log.profiles?.email || 'Unknown user' }}</td>
+            <td align="right">{{ log.work_time | number:'1.0-2' }}</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="2" align="right">Total</th>
+          <th align="right">{{ totalLoggedTime() | number:'1.0-2' }}</th>
+        </tr>
+      </tfoot>
+    </table>
+  }
+</fieldset>

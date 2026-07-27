@@ -49,6 +49,17 @@ export interface ProductionLog {
     profile_id?: string
 }
 
+export interface WorkOrderLog {
+  id: string
+  work_time: number
+  created_at: string
+  profile_id?: string | null
+  profiles?: {
+    username?: string | null
+    email?: string | null
+  } | null
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -386,6 +397,23 @@ export class SupabaseService {
 
   addProductionLog(log: ProductionLog) {
     return this.supabase.from('work_logs').insert(log)
+  }
+
+  getWorkOrderLogs(workOrderId: string) {
+    return this.supabase
+      .from('work_logs')
+      .select(`
+        id,
+        work_time,
+        created_at,
+        profile_id,
+        profiles (
+          username,
+          email
+        )
+      `)
+      .eq('work_order_id', workOrderId)
+      .order('created_at', { ascending: false })
   }
 
   getProfiles() {
