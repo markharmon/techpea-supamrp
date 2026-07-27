@@ -79,8 +79,12 @@
     </div>
   </fieldset>
 
+  @if (!isNew) {
+    <app-work-order-log [logs]="workOrderLogs()" />
+  }
+
   <div class="actions">
-    <a class="button" routerLink="/work-orders">{{ form.dirty ? 'Cancel Changes' : 'Back to Works Orders' }}</a>
+    <a class="button" routerLink="/work-orders">{{ form.dirty ? 'Cancel Changes' : 'Back to Work Orders' }}</a>
     <button type="submit" class="button primary large" [disabled]="form.invalid">Save</button>
   </div>
 
