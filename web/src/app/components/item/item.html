@@ -166,6 +166,9 @@
 
   <div class="actions">
     <button class="button" routerLink="/items">{{ form.dirty ? 'Cancel Changes' : 'Back to Item List' }}</button>
+    @if (!isNew) {
+      <button type="button" class="button" (click)="deleteItem()">Delete</button>
+    }
     <button type="submit" class="button primary" [disabled]="form.invalid">Save</button>
   </div>
 

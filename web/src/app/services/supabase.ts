@@ -314,6 +314,10 @@ export class SupabaseService {
     return this.supabase.from('items').upsert(payload).select().single()
   }
 
+  deleteItemIfUnreferenced(itemId: string) {
+    return this.supabase.rpc('delete_item_if_unreferenced', { p_item_id: itemId })
+  }
+
   upsertBom(bomItems: any[]) {
       const payload = bomItems.map(item => ({
         ...item,
