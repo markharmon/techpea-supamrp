@@ -41,6 +41,7 @@ export class ItemComponent implements OnInit {
     
     // Inventory & Financials
     current_stock: [0],
+    reserved_stock: [{ value: 0, disabled: true }],
     cost_per_unit: [0],
     sales_price: [0],
     reorder_level: [0],
@@ -99,6 +100,7 @@ export class ItemComponent implements OnInit {
           vendor_description: data.vendor_description,
           unit: data.unit,
           current_stock: data.current_stock,
+          reserved_stock: data.reserved_stock ?? 0,
           cost_per_unit: data.cost_per_unit,
           sales_price: data.sales_price,
           reorder_level: data.reorder_level,

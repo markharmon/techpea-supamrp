@@ -41,6 +41,12 @@
             <label>Current Stock</label>
             <input type="number" formControlName="current_stock">
         </div>
+        @if (!isNew) {
+          <div class="field">
+              <label>Reserved Stock</label>
+              <input type="number" formControlName="reserved_stock" readonly>
+          </div>
+        }
         <div class="field">
             <label>Price £</label>
             <input type="number" formControlName="sales_price">
