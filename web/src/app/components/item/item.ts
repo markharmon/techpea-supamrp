@@ -255,4 +255,24 @@ export class ItemComponent implements OnInit {
       this.loading.set(false)
     }
   }
+
+  async deleteItem() {
+    if (this.isNew || !this.itemId) return
+
+    if (!confirm('Delete this item? This cannot be undone.')) return
+
+    try {
+      this.loading.set(true)
+      const { error } = await this.supabase.deleteItemIfUnreferenced(this.itemId)
+      if (error) throw error
+
+      alert('Item deleted.')
+      this.router.navigate(['/items'])
+    } catch (e: any) {
+      const detail = e?.details ? `\n${e.details}` : ''
+      alert(`Cannot delete item.${detail}`)
+    } finally {
+      this.loading.set(false)
+    }
+  }
 }
