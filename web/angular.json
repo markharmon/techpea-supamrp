@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "techpea-supabase-demo": {
+    "techpea-supamrp": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -78,13 +78,13 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "techpea-supabase-demo:build:production"
+              "buildTarget": "techpea-supamrp:build:production"
             },
             "local": {
-              "buildTarget": "techpea-supabase-demo:build:local"
+              "buildTarget": "techpea-supamrp:build:local"
             },
             "development": {
-              "buildTarget": "techpea-supabase-demo:build:development"
+              "buildTarget": "techpea-supamrp:build:development"
             }
           },
           "defaultConfiguration": "development"

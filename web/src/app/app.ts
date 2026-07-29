@@ -15,7 +15,7 @@ export class App implements OnInit {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
 
-  protected readonly title = signal('techpea-supabase-demo');
+  protected readonly title = signal('Techpea SupaMRP');
   session = signal<Session | null>(null);
 
   public ngOnInit(): void {
