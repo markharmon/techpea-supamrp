@@ -335,7 +335,7 @@ export class SupabaseService {
         updated_at: new Date(),
       }))
 
-      return this.supabase.from('bom').upsert(payload)
+      return this.supabase.from('bom').upsert(payload, { defaultToNull: false })
   }
 
   deleteBomItems(ids: string[]) {
