@@ -1,23 +1,11 @@
 import { TestBed } from '@angular/core/testing'
 import { SupabaseService } from './supabase'
+import { mocks } from './supabase-test-mocks'
 
-const mocks = vi.hoisted(() => {
-  const query = {
-    select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(), returns: vi.fn().mockReturnThis()
-  }
-  return {
-    query, from: vi.fn(() => query), rpc: vi.fn(),
-    auth: {
-      getSession: vi.fn(async () => ({ data: { session: null } })),
-      onAuthStateChange: vi.fn()
-    }
-  }
+vi.mock('@supabase/supabase-js', async () => {
+  const { mocks } = await import('./supabase-test-mocks')
+  return { createClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc, auth: mocks.auth })) }
 })
-
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc, auth: mocks.auth }))
-}))
 
 describe('Supabase production yields', () => {
   beforeEach(() => vi.clearAllMocks())

@@ -1,27 +1,11 @@
 import { TestBed } from '@angular/core/testing'
 import { DispatchHeader, SupabaseService } from './supabase'
+import { mocks } from './supabase-test-mocks'
 
-const mocks = vi.hoisted(() => {
-  const query = {
-    select: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(), returns: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: { id: 'dispatch-1' }, error: null })
-  }
-  return {
-    query,
-    from: vi.fn(() => query),
-    rpc: vi.fn(() => query),
-    auth: {
-      getSession: vi.fn(async () => ({ data: { session: null } })),
-      onAuthStateChange: vi.fn()
-    }
-  }
+vi.mock('@supabase/supabase-js', async () => {
+  const { mocks } = await import('./supabase-test-mocks')
+  return { createClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc, auth: mocks.auth })) }
 })
-
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc, auth: mocks.auth }))
-}))
 
 describe('Supabase dispatch operations', () => {
   let service: SupabaseService
