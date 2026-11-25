@@ -3,6 +3,7 @@ import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../services/supabase';
 import { LoadingDirective } from '../../../shared/loading/loading.directive';
+import { PermissionService } from '../../../services/permission.service';
 
 @Component({
   selector: 'app-low-stock-widget',
@@ -20,6 +21,7 @@ export class LowStockWidgetComponent implements OnInit {
 
   public loading = signal(false)
   public items = signal<any[]>([])
+  public permissions = inject(PermissionService)
 
   async ngOnInit(): Promise<void> {
     await this.loadItems()

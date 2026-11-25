@@ -11,6 +11,7 @@
           <option value="planned">Planned</option>
           <option value="in_progress">In Progress</option>
           <option value="cancelled">Cancelled</option>
+          <option value="completed">Completed</option>
         </select>
       </div>
 
@@ -28,7 +29,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>Items to Manufacture</legend>
+    <legend>Batches to produce</legend>
    
     <div class="items" formArrayName="items">
       @for (item of itemControls; track $index; let rowIndex = $index) {
@@ -61,30 +62,118 @@
           </div>
           
           <div class="field">
-            <input type="number" formControlName="quantity_planned" min="1">
+            <input type="number" formControlName="quantity_planned" min="1" step="1">
           </div>
 
-          <button type="button" class="button" (click)="removeItem(rowIndex)">Remove</button>
+          @if (item.get('id')?.value) {
+            <button type="button" class="button" (click)="toggleMaterials(rowIndex)">
+              {{ materialsExpanded()[rowIndex] ? 'Hide Ingredients' : 'Ingredients' }}
+            </button>
+          }
+
+          @if (isMaterialsEditable()) {
+            <button type="button" class="button" (click)="removeItem(rowIndex)">Remove</button>
+          }
 
         </div>
+
+        @if (materialsExpanded()[rowIndex]) {
+          <div class="materials-panel" *peaLoading="materialsLoading()[rowIndex]">
+
+          <table class="pea-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>Batch</th>
+                  <th>Quantity</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+            @for (row of materialRows()[rowIndex] || []; track row.child_item_id; let childIndex = $index) {
+                <tr class="material-header">
+                  <td colspan="2">
+                    <strong>{{ row.child_item_name }}</strong>
+                  </td>
+                  <td colspan="2">
+                    {{ getAllocatedQuantity(row) }} / {{ row.required_quantity }}
+                  </td>
+                </tr>
+
+                    @for (line of row.lines; track line.item_batch_id; let lineIndex = $index) {
+                      <tr>
+                        <td>{{ row.child_item_name }}</td>
+                        <td>
+                          @if (isMaterialsEditable()) {
+                            <div class="field">
+                              <select [(ngModel)]="line.item_batch_id" [ngModelOptions]="{standalone: true}">
+                                @for (batch of row.batches; track batch.id) {
+                                  <option [value]="batch.id">
+                                    {{ batch.internal_code }} - Exp: {{ batch.expiry_date || 'No date' }} (avail: {{ batch.available }})
+                                  </option>
+                                }
+                              </select>
+                            </div>
+                          } @else {
+                            {{ line.internal_code }} - Exp: {{ line.expiry_date || 'No date' }}
+                          }
+                        </td>
+                        <td>
+                          @if (isMaterialsEditable()) {
+                            <div class="field">
+                              <input type="number" min="0" [(ngModel)]="line.quantity" [ngModelOptions]="{standalone: true}">
+                            </div>
+                          } @else {
+                            {{ line.quantity }}
+                          }
+                        </td>
+                        <td>
+                          @if (isMaterialsEditable()) {
+                            <button type="button" class="button" (click)="removeMaterialLine(rowIndex, childIndex, lineIndex)">Remove</button>
+                          }
+                        </td>
+                      </tr>
+                    }
+
+                @if (isMaterialsEditable()) {
+                  <tr>
+                    <td colspan="4">
+                      <div class="actions">
+                        <button type="button" class="button" (click)="addMaterialLine(rowIndex, childIndex)">Add Batch</button>
+                        <button type="button" class="button primary" (click)="saveMaterialAllocation(rowIndex, childIndex)">Save Allocation</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+            }
+              </tbody>
+            </table>
+            @if ((materialRows()[rowIndex] || []).length === 0) {
+              <p class="empty-state">No BOM materials for this item.</p>
+            }
+          </div>
+        }
       }
       @if (itemControls.length === 0) {
           <p >No items added yet.</p>
       }
     </div>
 
-    <div class="actions">
-      <button type="button" class="button" (click)="addItem()">Add Item</button>
-    </div>
+    @if (isMaterialsEditable()) {
+      <div class="actions">
+        <button type="button" class="button" (click)="addItem()">Add Item</button>
+      </div>
+    }
   </fieldset>
 
   @if (!isNew) {
     <app-work-order-log [logs]="workOrderLogs()" />
   }
 
-  <div class="actions">
-    <a class="button" routerLink="/work-orders">{{ form.dirty ? 'Cancel Changes' : 'Back to Work Orders' }}</a>
-    <button type="submit" class="button primary large" [disabled]="form.invalid">Save</button>
-  </div>
-
+  @if(permissions.hasAny(['admin', 'supervisor'])()) {
+    <div class="actions">
+      <a class="button" routerLink="/work-orders">{{ form.dirty ? 'Cancel Changes' : 'Back to Work Orders' }}</a>
+      <button type="submit" class="button primary large" [disabled]="form.invalid">Save</button>
+    </div>
+  }
 </form>

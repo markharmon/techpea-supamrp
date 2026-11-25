@@ -1,39 +1,78 @@
 <form *peaLoading="loading()" [formGroup]="logForm" (ngSubmit)="submitLog()" class="form">
   <h3>Log Production</h3>
 
-  <div class="field">
-    <label for="workOrder">Work Order</label>
-    <select id="workOrder" formControlName="work_order_id">
-      <option value="" disabled>Select a work order</option>
-      @for (wo of workOrders(); track wo.id) {
-        <option [value]="wo.id">#{{ wo.reference_number }} - {{ wo.description }}</option>
-      }
-    </select>
-  </div>
+  @if (errorMessage()) {
+    <div class="alert error" role="alert">{{ errorMessage() }}</div>
+  }
+  <fieldset [disabled]="completing()">
+    <legend>Production Details</legend>
+    <div class="field">
+      <label for="workOrder">Work Order</label>
+      <select id="workOrder" formControlName="work_order_id">
+        <option value="" disabled>Select a work order</option>
+        @for (wo of workOrders(); track wo.id) {
+          <option [value]="wo.id">#{{ wo.reference_number }} - {{ wo.description }}</option>
+        }
+      </select>
+    </div>
 
-  <div class="field">
-    <label for="profile">User</label>
-    <select id="profile" formControlName="profile_id">
-      <option value="" disabled>Select a user</option>
-      @for (profile of profiles(); track profile.id) {
-        <option [value]="profile.id">{{ profile.username || profile.email }}</option>
-      }
-    </select>
-  </div>
+    <div class="field">
+      <label for="profile">User</label>
+      <select id="profile" formControlName="profile_id">
+        <option value="" disabled>Select a user</option>
+        @for (profile of profiles(); track profile.id) {
+          <option [value]="profile.id">{{ profile.username || profile.email }}</option>
+        }
+      </select>
+    </div>
 
-  <div class="field">
-    <label for="work_time">Log time</label>
-    <input id="work_time" type="number" formControlName="work_time" min="0" />
-  </div>
+    <div class="field">
+      <label for="work_time">Log time (minutes)</label>
+      <input id="work_time" type="number" formControlName="work_time" min="0" />
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes</label>
+      <textarea id="notes" formControlName="notes" rows="3" maxlength="2000"></textarea>
+    </div>
+  </fieldset>
+
+  @if (completing()) {
+    <fieldset [formGroup]="yieldForm">
+      <legend>Final Batch Yields</legend>
+      <p>Expected yields use the stored batch size. Enter actual output in the item's stock unit.
+        Zero is allowed for a failed batch; reserved ingredients will still be consumed.</p>
+      <div formArrayName="quantities">
+        @for (batch of yieldBatches(); track $index; let index = $index) {
+          <div class="field">
+            <label [for]="'final-yield-' + index">{{ batch.name }} - Batch {{ batch.batch_number }} ({{ batch.unit }})</label>
+            <span>Expected: {{ batch.expected }} {{ batch.unit }}</span>
+            <input [id]="'final-yield-' + index" type="number" min="0" step="any" required
+              [formControlName]="index">
+            @if (yieldQuantities.at(index).touched && yieldQuantities.at(index).invalid) {
+              <p role="alert">Enter a non-negative final yield.</p>
+            }
+          </div>
+        }
+      </div>
+    </fieldset>
+  }
 
   <div class="field actions">
-    <button type="submit" class="button primary block" [disabled]="loading() || logForm.invalid">
-      {{ loading() ? "Updating ..." : "Update" }}
-    </button>
-    <button type="button" class="button secondary block" 
-            (click)="completeOrder()" 
-            [disabled]="loading() || !logForm.get('work_order_id')?.value">
-      Complete
-    </button>
+    @if (completing()) {
+      <button type="submit" class="button primary block"
+        [disabled]="loading() || logForm.invalid || yieldForm.invalid">Save Yields &amp; Complete</button>
+      <button type="button" class="button secondary block" (click)="cancelCompletion()" [disabled]="loading()">
+        Back
+      </button>
+    } @else {
+      <button type="submit" class="button primary block" [disabled]="loading() || logForm.invalid">
+        {{ loading() ? "Adding ..." : "Add" }}
+      </button>
+      <button type="button" class="button secondary block"
+        (click)="beginCompletion()" [disabled]="loading() || logForm.invalid">
+        Add &amp; Complete
+      </button>
+    }
   </div>
 </form>

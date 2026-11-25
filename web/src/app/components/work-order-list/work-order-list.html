@@ -2,7 +2,9 @@
   <h3>Work Orders</h3>
 
   <div class="actions">
+    @if (permissions.hasAny(['admin', 'supervisor'])()) {
       <a routerLink="/work-orders/new" class="button primary">New Work Order</a>
+    }
   </div>
 
   <div class="filters">
@@ -52,7 +54,9 @@
             </span>
           </td>
           <td>
-            <a [routerLink]="['/work-orders', wo.id]" class="button">Edit</a>
+            @if (permissions.hasAny(['admin', 'supervisor'])()) {
+              <a [routerLink]="['/work-orders', wo.id]" class="button">Edit</a>
+            }
           </td>
         </tr>
       }

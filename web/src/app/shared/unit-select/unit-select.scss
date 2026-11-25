@@ -1,0 +1,5 @@
+// Let the inner select participate directly in the surrounding .field
+// layout and pick up the global form select styling.
+:host {
+  display: contents;
+}

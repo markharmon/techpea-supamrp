@@ -1,6 +1,6 @@
 <section *peaLoading="loading()">
   <div class="dashboard-header">
-    <h3>Latest Work Orders</h3>
+    <h3>{{ title() }}</h3>
     <a routerLink="/work-orders" class="button">View More</a>
   </div>
 
@@ -29,7 +29,9 @@
               </span>
             </td>
             <td>
+              @if(permissions.hasAny(['admin', 'supervisor'])()) {
               <a [routerLink]="['/work-orders', wo.id]" class="button">Edit</a>
+              }
             </td>
           </tr>
         }

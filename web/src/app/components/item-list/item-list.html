@@ -2,8 +2,43 @@
     <h3>Items</h3>
 
     <div class="actions">
+        @if(permissions.hasAny(['admin'])()) {
         <button class="button primary" routerLink="/items/new">New Item</button>
+        }
     </div>
+
+    <div class="form inline">
+
+        <div class="field search">
+            <input type="text" placeholder="Search SKU or name..."
+                [value]="searchTerm()"
+                (input)="onSearchTermChange($any($event.target).value)">
+        </div>
+
+        <div class="field">
+            <select (change)="onCategoryFilterChange($any($event.target).value)">
+                <option value="">All categories</option>
+                @for (category of categories(); track category.id) {
+                <option [value]="category.name" [selected]="category.name === categoryFilter()">{{ category.name }}</option>
+                }
+            </select>
+        </div>
+
+        <div class="field">
+            <select (change)="onManufacturedFilterChange($any($event.target).value)">
+                <option value="">All</option>
+                <option value="true">Manufactured</option>
+                <option value="false">Not manufactured</option>
+            </select>
+        </div>
+        <div class="field">
+            <select (change)="onSaleableFilterChange($any($event.target).value)">
+                <option value="">All</option>
+                <option value="true">Saleable</option>
+                <option value="false">Not saleable</option>
+            </select>
+        </div>
+</div>
 
     <table class="pea-table">
         <thead>
@@ -24,13 +59,13 @@
                     </button>
                 </th>
                 <th align="right">
-                    <button type="button" class="sort-button sort-button-right" (click)="sortBy('current_stock')">
-                        Qty <span class="sort-indicator">{{ sortLabel('current_stock') }}</span>
+                    <button type="button" class="sort-button sort-button-right" (click)="sortBy('batch_count')">
+                        Batches <span class="sort-indicator">{{ sortLabel('batch_count') }}</span>
                     </button>
                 </th>
                 <th align="right">
-                    <button type="button" class="sort-button sort-button-right" (click)="sortBy('cost_per_unit')">
-                        Cost <span class="sort-indicator">{{ sortLabel('cost_per_unit') }}</span>
+                    <button type="button" class="sort-button sort-button-right" (click)="sortBy('current_stock')">
+                        Qty <span class="sort-indicator">{{ sortLabel('current_stock') }}</span>
                     </button>
                 </th>
                 <th></th>
@@ -42,10 +77,12 @@
                 <td>{{ item.sku }}</td>
                 <td>{{ item.category_name }}</td>
                 <td>{{ item.name }}</td>
+                <td align="right">{{ item.batch_count }}</td>
                 <td align="right">{{ item.current_stock | number:'1.0-2' }}</td>
-                <td align="right"><span>£</span> {{ item.cost_per_unit | number:'1.2-2' }}</td>
                 <td align="right">
+                    @if(permissions.hasAny(['admin'])()) {
                     <button class="button" [routerLink]="['/items', item.id]">Edit</button>
+                    }
                 </td>
             </tr>
             }

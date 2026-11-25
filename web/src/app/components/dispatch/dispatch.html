@@ -1,0 +1,217 @@
+<form [formGroup]="form" (ngSubmit)="save()" *peaLoading="loading()" class="form">
+  <h3>{{ isNew ? 'New Dispatch' : (canManage() ? 'Edit Dispatch' : 'Dispatch') }}</h3>
+  @if (errorMessage()) {
+    <div class="alert error" role="alert">{{ errorMessage() }}</div>
+    <button class="button" type="button" (click)="reload()">Reload Dispatch</button>
+  }
+  <fieldset [disabled]="!ready() || !canManage()">
+    <legend>Dispatch Details</legend>
+    <div class="group">
+      <div class="field">
+        <label for="dispatch-date">Date</label>
+        <input id="dispatch-date" type="date" formControlName="dispatch_date" required>
+      </div>
+      <div class="field">
+        <label for="dispatch-customer">Customer</label>
+        <div class="combobox">
+          <input id="dispatch-customer" type="text" [formControl]="customerSearch"
+            placeholder="Search customers" autocomplete="off"
+            role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-required="true"
+            [attr.aria-expanded]="customerDropdownOpen()"
+            aria-controls="dispatch-customer-list"
+            [attr.aria-activedescendant]="customerDropdownOpen() && customerHighlighted() >= 0 ? 'dispatch-customer-option-' + customerHighlighted() : null"
+            [attr.aria-invalid]="form.controls.customer_id.touched && form.controls.customer_id.invalid"
+            [attr.aria-describedby]="form.controls.customer_id.touched && form.controls.customer_id.invalid ? 'dispatch-customer-error' : null"
+            (focus)="onCustomerSearchFocus($event)"
+            (click)="openCustomerDropdown()"
+            (input)="onCustomerSearchInput()"
+            (keydown)="onCustomerSearchKeydown($event)"
+            (blur)="onCustomerSearchBlur()">
+          @if (customerDropdownOpen()) {
+            <ul class="combobox-list" id="dispatch-customer-list" role="listbox" aria-label="Customers">
+              @for (customer of filteredCustomers(); track customer.id; let optIndex = $index) {
+                <li role="option" [id]="'dispatch-customer-option-' + optIndex"
+                  [class.active]="customerHighlighted() === optIndex"
+                  [attr.aria-selected]="customer.id === form.controls.customer_id.value"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="chooseCustomer(customer)">
+                  {{ customer.name }}
+                </li>
+              } @empty {
+                <li class="empty" role="option" aria-disabled="true" aria-selected="false">No matching customers</li>
+              }
+            </ul>
+          }
+        </div>
+        @if (form.controls.customer_id.touched && form.controls.customer_id.invalid) {
+          <p id="dispatch-customer-error" role="alert">Select a customer from the list.</p>
+        }
+        @if (customers().length === 0 && ready()) {
+          <p>No customers found.
+            @if (canManage()) {
+              <a routerLink="/customers/new">Create a customer</a> first.
+            }
+          </p>
+        }
+      </div>
+      <div class="field">
+        <label for="dispatch-temperature">Product Temperature (&deg;C)</label>
+        <input id="dispatch-temperature" type="number" step="any" formControlName="product_temperature_celsius" required>
+      </div>
+    </div>
+    <div class="group">
+      <div class="field">
+        <label for="dispatch-packaging">Packaging intact</label>
+        <select id="dispatch-packaging" formControlName="packaging_intact" required>
+          <option [ngValue]="null">Select</option>
+          <option [ngValue]="true">Yes</option>
+          <option [ngValue]="false">No</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="dispatch-vehicle">Vehicle clean and free from pests and contamination</label>
+        <select id="dispatch-vehicle" formControlName="vehicle_clean_and_free_from_pests_and_contamination" required>
+          <option [ngValue]="null">Select</option>
+          <option [ngValue]="true">Yes</option>
+          <option [ngValue]="false">No</option>
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset [disabled]="!ready() || !canManage()">
+    <legend>Items and Batches</legend>
+    <p>Quantities are in each item's stock unit. Changes are applied together when you save.</p>
+    <div formArrayName="items">
+      @for (row of itemRows; track row; let rowIndex = $index) {
+        <div class="item-panel" [formGroupName]="rowIndex">
+          <div class="group">
+            <div class="field">
+              <label [for]="'dispatch-item-' + rowIndex">Item</label>
+              <div class="combobox">
+                <input [id]="'dispatch-item-' + rowIndex" type="text" formControlName="search"
+                  placeholder="Search name or SKU" autocomplete="off"
+                  role="combobox" aria-autocomplete="list" aria-haspopup="listbox"
+                  [attr.aria-expanded]="openRow() === row"
+                  [attr.aria-controls]="'dispatch-item-list-' + rowIndex"
+                  [attr.aria-activedescendant]="openRow() === row && highlighted() >= 0 ? 'dispatch-item-option-' + rowIndex + '-' + highlighted() : null"
+                  (focus)="onSearchFocus($event, row)"
+                  (input)="onSearchInput(row)"
+                  (keydown)="onSearchKeydown($event, row)"
+                  (blur)="closeDropdown(row)">
+                @if (openRow() === row) {
+                  <ul class="combobox-list" [id]="'dispatch-item-list-' + rowIndex" role="listbox">
+                    @for (item of filteredItems(row); track item.id; let optIndex = $index) {
+                      <li role="option" [id]="'dispatch-item-option-' + rowIndex + '-' + optIndex"
+                        [class.active]="highlighted() === optIndex"
+                        [class.disabled]="itemUsed(item.id, row)"
+                        [attr.aria-selected]="item.id === row.controls.item_id.value"
+                        [attr.aria-disabled]="itemUsed(item.id, row)"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="chooseItem(row, item)">
+                        {{ item.name }} | {{ item.sku || 'No SKU' }}
+                      </li>
+                    } @empty {
+                      <li class="empty" aria-disabled="true">No matching items</li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+            @if (canManage()) {
+              <button class="button" type="button" (click)="removeItem(rowIndex)">Remove Item</button>
+            }
+          </div>
+          @if (row.controls.item_id.value) {
+            <div class="materials-panel" *peaLoading="batchesLoading()[row.controls.item_id.value]">
+              <div class="table-scroll">
+                <table class="pea-table" formArrayName="batches">
+                  <thead><tr><th>Item</th><th>Batch</th><th>Quantity ({{ itemUnit(row) }})</th><th></th></tr></thead>
+                  <tbody>
+                    <tr class="material-header">
+                      <td colspan="2"><strong>{{ itemName(row) }}</strong></td>
+                      <td colspan="2">Total: {{ total(row) }} {{ itemUnit(row) }}</td>
+                    </tr>
+                    @for (line of row.controls.batches.controls; track line; let lineIndex = $index) {
+                      <tr [formGroupName]="lineIndex">
+                        <td>{{ itemName(row) }}</td>
+                        <td>
+                          <div class="field">
+                            <select formControlName="item_batch_id" [attr.aria-label]="'Batch for ' + itemName(row)">
+                              @for (batch of options(row); track batch.id) {
+                                <option [value]="batch.id" [disabled]="batchUsed(batch.id, row, line)">
+                                  {{ batch.internal_code || batch.external_code || batch.id }} - Exp: {{ batch.expiry_date || 'No date' }} (avail: {{ batch.available }})
+                                </option>
+                              }
+                            </select>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="field">
+                            <input type="number" min="0" step="any" formControlName="quantity" required
+                              [max]="available(row, line)" [attr.aria-label]="'Quantity for ' + itemName(row)">
+                            <span>Available: {{ available(row, line) }} {{ itemUnit(row) }}</span>
+                          </div>
+                        </td>
+                        <td>
+                          @if (canManage()) {
+                            <button class="button" type="button" (click)="removeBatch(row, lineIndex)">Remove</button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              @if (canManage()) {
+                <div class="actions">
+                  <button class="button" type="button" (click)="addBatch(row)" [disabled]="options(row).length <= row.controls.batches.length">Add Batch</button>
+                </div>
+              }
+              @if (options(row).length === 0) {
+                <p>No unreserved batches available for this item.</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+    @if (canManage()) {
+      <div class="actions"><button class="button" type="button" (click)="addItem()">Add Item</button></div>
+    }
+  </fieldset>
+  <div class="actions">
+    <a class="button" routerLink="/dispatches">{{ form.dirty ? 'Cancel Changes' : 'Back to Dispatches' }}</a>
+    @if (canManage()) {
+      <button class="button primary" type="submit" [disabled]="form.invalid || !ready() || loading()">Save</button>
+      @if (!isNew) {
+        <button class="button" type="button" (click)="deleteDispatch()" [disabled]="!ready() || loading()">Delete Dispatch</button>
+      }
+    }
+  </div>
+  @if (!isNew) {
+    @if (audit(); as audit) {
+      <section class="audit">
+        <div class="table-scroll">
+          <table class="pea-table">
+            <thead>
+              <tr><th>Action</th><th>User</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Created</th>
+                <td>{{ audit.created_by_name || 'Unknown user' }}</td>
+                <td>{{ audit.created_at | date:'medium' }}</td>
+              </tr>
+              <tr>
+                <th scope="row">Last updated</th>
+                <td>{{ audit.updated_by_name || 'Unknown user' }}</td>
+                <td>{{ audit.updated_at | date:'medium' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  }
+</form>

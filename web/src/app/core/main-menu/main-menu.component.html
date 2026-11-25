@@ -17,6 +17,8 @@
     <a cdkMenuItem class="button ghost" routerLink="/production-log" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Production Log</a>
     <a cdkMenuItem class="button ghost" routerLink="/work-orders" routerLinkActive="active" (click)="closeMenu()">Work Orders</a>
     <a cdkMenuItem class="button ghost" routerLink="/items" routerLinkActive="active" (click)="closeMenu()">Items</a>
+    <a cdkMenuItem class="button ghost" routerLink="/customers" routerLinkActive="active" (click)="closeMenu()">Customers</a>
+    <a cdkMenuItem class="button ghost" routerLink="/dispatches" routerLinkActive="active" (click)="closeMenu()">Dispatches</a>
     
     @if (permissions.has('admin')()) {
       <a cdkMenuItem class="button ghost" routerLink="/categories" routerLinkActive="active" (click)="closeMenu()">Categories</a>

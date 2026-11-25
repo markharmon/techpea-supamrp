@@ -1,0 +1,42 @@
+<section *peaLoading="loading()">
+  <h3>Customers</h3>
+
+  @if (canManage()) {
+    <div class="actions">
+      <a class="button primary" routerLink="/customers/new">New Customer</a>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert error" role="alert">{{ errorMessage() }}</div>
+    <button class="button" type="button" (click)="loadCustomers()">Retry</button>
+  } @else {
+    <table class="pea-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          @if (canManage()) {
+            <th></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (customer of customers(); track customer.id) {
+          <tr>
+            <td>{{ customer.name }}</td>
+            @if (canManage()) {
+              <td class="row-actions">
+                <a class="button" [routerLink]="['/customers', customer.id]">Edit</a>
+              </td>
+            }
+          </tr>
+        }
+        @if (customers().length === 0) {
+          <tr>
+            <td [attr.colspan]="canManage() ? 2 : 1">No customers found.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

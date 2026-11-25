@@ -23,7 +23,9 @@
             <td align="right">{{ item.current_stock | number:'1.0-2' }}</td>
             <td align="right">{{ item.reorder_level | number:'1.0-2' }}</td>
             <td align="right">
+              @if(permissions.hasAny(['admin'])()) {
               <a [routerLink]="['/items', item.id]" class="button">Edit</a>
+              }
             </td>
           </tr>
         }

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core'
+import { inject, Injectable, InjectionToken, signal } from '@angular/core'
 import {
   AuthChangeEvent,
   AuthSession,
@@ -13,6 +13,69 @@ export interface Profile {
   id?: string
   username?: string
   avatar_url?: string
+}
+
+export interface Customer {
+  id: string
+  name: string
+}
+
+export interface DispatchHeader {
+  dispatch_date: string
+  customer_id: string
+  packaging_intact: boolean
+  vehicle_clean_and_free_from_pests_and_contamination: boolean
+  product_temperature_celsius: number
+}
+
+export interface Dispatch extends DispatchHeader {
+  id: string
+  customer_name: string
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  created_by_name: string | null
+  updated_by: string | null
+  updated_by_name: string | null
+}
+
+export interface DispatchItem {
+  id: string
+  name: string
+  sku: string | null
+  unit: string
+}
+
+export interface DispatchBatch {
+  id: string
+  item_id: string
+  quantity: number
+  reserved: number
+  internal_code: string | null
+  external_code: string | null
+  manufacture_date: string | null
+  expiry_date: string | null
+}
+
+export interface DispatchAllocation {
+  item_batch_id: string
+  quantity: number
+}
+
+export interface DispatchDetail extends Dispatch {
+  dispatch_item_batches: (DispatchAllocation & {
+    item_batches: DispatchBatch & { items: DispatchItem }
+  })[]
+}
+
+export interface DispatchListRow extends Dispatch {
+  dispatch_item_batches: {
+    quantity: number
+    item_batches: {
+      item_id: string
+      items: Pick<DispatchItem, 'name' | 'unit'> | null
+    } | null
+  }[]
 }
 
 export interface Item {
@@ -43,15 +106,40 @@ export interface WorkOrderItem {
   quantity_planned: number
 }
 
+export interface ItemBatch {
+  id?: string
+  item_id: string
+  manufacture_date?: string | null
+  expiry_date?: string | null
+  quantity: number
+  reserved?: number
+  external_code?: string | null
+  internal_code?: string | null
+}
+
 export interface ProductionLog {
     work_order_id: string,
     work_time: number,
-    profile_id?: string
+  profile_id?: string,
+  notes?: string | null
+}
+
+export interface WorkOrderBatchYield {
+  work_order_item_id: string
+  batch_number: number
+  quantity: number
+}
+
+export interface WorkOrderYieldItem {
+  id: string
+  quantity_planned: number
+  items: { name: string, unit: string, batch_size: number | null } | null
 }
 
 export interface WorkOrderLog {
   id: string
   work_time: number
+  notes?: string | null
   created_at: string
   profile_id?: string | null
   profiles?: {
@@ -60,17 +148,20 @@ export interface WorkOrderLog {
   } | null
 }
 
+export const SUPABASE_CLIENT = new InjectionToken<SupabaseClient>('Supabase client', {
+  providedIn: 'root',
+  factory: () => createClient(environment.supabaseUrl, environment.supabaseKey)
+})
+
 @Injectable({
   providedIn: 'root',
 })
 export class SupabaseService {
-  private supabase: SupabaseClient
+  private supabase = inject(SUPABASE_CLIENT)
   _session: AuthSession | null = null
   public user = signal<User | null>(null)
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey)
-    
     this.supabase.auth.getSession().then(({ data }) => {
       this._session = data.session
       this.user.set(data.session?.user ?? null)
@@ -179,8 +270,113 @@ export class SupabaseService {
       .eq('id', id)
   }
 
+  getAllCustomers() {
+    return this.supabase
+      .from('customers')
+      .select('id, name')
+      .order('name')
+      .returns<Customer[]>()
+  }
+
+  getCustomer(id: string) {
+    return this.supabase
+      .from('customers')
+      .select('id, name')
+      .eq('id', id)
+      .returns<Customer[]>()
+      .single()
+  }
+
+  createCustomer(customer: Pick<Customer, 'name'>) {
+    return this.supabase
+      .from('customers')
+      .insert({ ...customer, updated_at: new Date() })
+      .select('id, name')
+      .returns<Customer[]>()
+      .single()
+  }
+
+  updateCustomer(id: string, customer: Pick<Customer, 'name'>) {
+    return this.supabase
+      .from('customers')
+      .update({ ...customer, updated_at: new Date() })
+      .eq('id', id)
+      .select('id, name')
+      .returns<Customer[]>()
+      .single()
+  }
+
   getVendors() {
     return this.supabase.from('vendors').select('*').order('name')
+  }
+
+  getDispatches(page = 1, pageSize = 50) {
+    return this.supabase
+      .from('dispatches')
+      .select(`
+        id, dispatch_date, customer_id, customer_name, packaging_intact,
+        vehicle_clean_and_free_from_pests_and_contamination, product_temperature_celsius,
+        created_at, updated_at, created_by, created_by_name, updated_by, updated_by_name,
+        dispatch_item_batches ( quantity, item_batches ( item_id, items ( name, unit ) ) )
+      `, { count: 'exact' })
+      .order('dispatch_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range((page - 1) * pageSize, page * pageSize - 1)
+      .returns<DispatchListRow[]>()
+  }
+
+  getDispatch(id: string) {
+    return this.supabase
+      .from('dispatches')
+      .select(`
+        id, dispatch_date, customer_id, customer_name, packaging_intact,
+        vehicle_clean_and_free_from_pests_and_contamination, product_temperature_celsius,
+        created_at, updated_at, created_by, created_by_name, updated_by, updated_by_name,
+        dispatch_item_batches (
+          item_batch_id, quantity,
+          item_batches (
+            id, item_id, quantity, reserved, internal_code, external_code, manufacture_date, expiry_date,
+            items ( id, name, sku, unit )
+          )
+        )
+      `)
+      .eq('id', id)
+      .returns<DispatchDetail[]>()
+      .single()
+  }
+
+  getDispatchItems() {
+    return this.supabase.from('items').select('id, name, sku, unit').order('name').returns<DispatchItem[]>()
+  }
+
+  getDispatchBatches(itemId: string) {
+    return this.supabase
+      .from('item_batches')
+      .select('id, item_id, quantity, reserved, internal_code, external_code, manufacture_date, expiry_date')
+      .eq('item_id', itemId)
+      .gt('quantity', 0)
+      .order('expiry_date', { ascending: true, nullsFirst: false })
+      .order('created_at')
+      .returns<DispatchBatch[]>()
+  }
+
+  createDispatch(dispatch: DispatchHeader, batches: DispatchAllocation[]) {
+    return this.supabase.rpc('create_dispatch', {
+      p_dispatch: dispatch, p_batches: batches
+    }).returns<Dispatch[]>().single()
+  }
+
+  updateDispatch(id: string, dispatch: DispatchHeader, batches: DispatchAllocation[], updatedAt: string) {
+    return this.supabase.rpc('update_dispatch', {
+      p_dispatch_id: id, p_dispatch: dispatch, p_batches: batches, p_expected_updated_at: updatedAt
+    }).returns<Dispatch[]>().single()
+  }
+
+  deleteDispatch(id: string, updatedAt: string) {
+    return this.supabase.rpc('delete_dispatch', {
+      p_dispatch_id: id, p_expected_updated_at: updatedAt
+    })
   }
 
   getWorkOrders() {
@@ -229,7 +425,6 @@ export class SupabaseService {
           items ( name )
         )
       `)
-      .neq('status', 'completed')
       .neq('status', 'cancelled')
       .order('updated_at', { ascending: false })
       .limit(limit)
@@ -247,6 +442,47 @@ export class SupabaseService {
         id: wo.id,
         reference_number: wo.reference_number,
         status: wo.status,
+        description: (wo.work_order_items || [])
+          .map((woi: any) => `${woi.items?.name || 'Unknown'} (${woi.quantity_planned})`)
+          .join(', ')
+      })),
+      error: null
+    }
+  }
+
+  async getWorkOrdersDueInRange(startDate: string, endDate: string, limit: number = 5) {
+    const { data, error } = await this.supabase
+      .from('work_orders')
+      .select(`
+        id,
+        reference_number,
+        status,
+        due_date,
+        work_order_items (
+          quantity_planned,
+          items ( name )
+        )
+      `)
+      .neq('status', 'cancelled')
+      .gte('due_date', startDate)
+      .lte('due_date', endDate)
+      .order('due_date', { ascending: true })
+      .limit(limit)
+
+    if (error) {
+      return { data: null, error }
+    }
+
+    if (!data) {
+      return { data: [], error: null }
+    }
+
+    return {
+      data: data.map(wo => ({
+        id: wo.id,
+        reference_number: wo.reference_number,
+        status: wo.status,
+        due_date: wo.due_date,
         description: (wo.work_order_items || [])
           .map((woi: any) => `${woi.items?.name || 'Unknown'} (${woi.quantity_planned})`)
           .join(', ')
@@ -316,6 +552,72 @@ export class SupabaseService {
       .single()
   }
 
+  getItemBatches(itemId: string) {
+    return this.supabase
+      .from('item_batches')
+      .select('id, manufacture_date, expiry_date, quantity, reserved, external_code, internal_code')
+      .eq('item_id', itemId)
+      .gt('quantity', 0)
+      .order('expiry_date', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: true })
+  }
+
+  getNonZeroItemBatchCounts() {
+    return this.supabase
+      .from('item_batches')
+      .select('item_id')
+      .gt('quantity', 0)
+  }
+
+  upsertItemBatches(batches: ItemBatch[]) {
+    const payload = batches.map(batch => ({
+      ...batch,
+      updated_at: new Date(),
+    }))
+
+    return this.supabase.from('item_batches').upsert(payload, { defaultToNull: false })
+  }
+
+  deleteItemBatches(ids: string[]) {
+    return this.supabase.from('item_batches').delete().in('id', ids)
+  }
+
+  getBomForItem(itemId: string) {
+    return this.supabase
+      .from('bom')
+      .select(`
+        id,
+        quantity,
+        child_item:items!child_item_id ( id, name, sku )
+      `)
+      .eq('parent_item_id', itemId)
+      .order('id')
+  }
+
+  getWorkOrderItemBatchAllocations(workOrderItemId: string) {
+    return this.supabase
+      .from('work_order_item_batches')
+      .select(`
+        id,
+        item_batch_id,
+        quantity,
+        item_batches ( id, item_id, manufacture_date, expiry_date, quantity, reserved, internal_code )
+      `)
+      .eq('work_order_item_id', workOrderItemId)
+  }
+
+  setWorkOrderItemBatchAllocations(
+    workOrderItemId: string,
+    childItemId: string,
+    allocations: { item_batch_id: string, quantity: number }[]
+  ) {
+    return this.supabase.rpc('set_work_order_item_batch_allocations', {
+      p_work_order_item_id: workOrderItemId,
+      p_child_item_id: childItemId,
+      p_allocations: allocations,
+    })
+  }
+
   upsertItem(item: any) {
     const payload = {
       ...item,
@@ -335,7 +637,7 @@ export class SupabaseService {
         updated_at: new Date(),
       }))
 
-      return this.supabase.from('bom').upsert(payload, { defaultToNull: false })
+    return this.supabase.from('bom').upsert(payload, { defaultToNull: false })
   }
 
   deleteBomItems(ids: string[]) {
@@ -360,6 +662,15 @@ export class SupabaseService {
 
   createWorkOrder(wo: WorkOrderDetail) {
     return this.supabase.from('work_orders').insert(wo).select().single()
+  }
+
+  // Atomic: rolls back the work order if any item's material reservation fails,
+  // avoiding an empty work order being saved when stock is insufficient.
+  createWorkOrderWithItems(wo: WorkOrderDetail, items: Pick<WorkOrderItem, 'item_id' | 'quantity_planned'>[]) {
+    return this.supabase.rpc('create_work_order_with_items', {
+      p_work_order: wo,
+      p_items: items
+    }).single()
   }
 
   updateWorkOrder(id: string, wo: WorkOrderDetail) {
@@ -388,6 +699,22 @@ export class SupabaseService {
     return this.supabase.rpc('complete_work_order', { p_work_order_id: workOrderId })
   }
 
+  getWorkOrderYieldItems(workOrderId: string) {
+    return this.supabase.from('work_order_items')
+      .select('id, quantity_planned, items ( name, unit, batch_size )')
+      .eq('work_order_id', workOrderId)
+      .order('id')
+      .returns<WorkOrderYieldItem[]>()
+  }
+
+  completeWorkOrderWithYields(log: ProductionLog, yields: WorkOrderBatchYield[]) {
+    return this.supabase.rpc('complete_work_order', {
+      p_work_order_id: log.work_order_id,
+      p_yields: yields,
+      p_log: { profile_id: log.profile_id, work_time: log.work_time, notes: log.notes }
+    })
+  }
+
   setWorkOrderInProgress(workOrderId: string) {
     return this.supabase
       .from('work_orders')
@@ -405,6 +732,7 @@ export class SupabaseService {
       .select(`
         id,
         work_time,
+        notes,
         created_at,
         profile_id,
         profiles (

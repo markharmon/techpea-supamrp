@@ -1,0 +1,72 @@
+.table-scroll {
+  overflow-x: auto;
+}
+
+.item-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-default);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.materials-panel {
+  margin-top: var(--space-md);
+}
+
+.combobox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  .combobox-list {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    z-index: 10;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 240px;
+    overflow-y: auto;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-default);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+    li {
+      padding: var(--space-sm) var(--space-md);
+      cursor: pointer;
+
+      &.active,
+      &:hover:not(.disabled):not(.empty) {
+        background-color: var(--color-border);
+      }
+
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &.empty {
+        cursor: default;
+        opacity: 0.7;
+      }
+    }
+  }
+}
+
+.group > .button {
+  align-self: center;
+}
+
+@media (max-width: 600px) {
+  .group {
+    flex-direction: column;
+
+    .field {
+      width: 100%;
+      flex-basis: auto;
+    }
+  }
+}

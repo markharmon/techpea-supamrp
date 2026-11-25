@@ -2,7 +2,7 @@ import { inject } from '@angular/core'
 import { Router, type CanActivateFn } from '@angular/router'
 import { SupabaseService } from '../../services/supabase'
 
-export const adminGuard: CanActivateFn = async () => {
+export const permissionGuard = (allowedPermissions: string[]): CanActivateFn => async () => {
   const router = inject(Router)
   const supabase = inject(SupabaseService)
 
@@ -13,10 +13,12 @@ export const adminGuard: CanActivateFn = async () => {
   }
 
   const permission = session.user.app_metadata['permission']
-  if (permission !== 'admin') {
-    alert('Access denied: admin access is required.')
+  if (!allowedPermissions.includes(permission)) {
+    alert(`Access denied: one of these permissions is required: ${allowedPermissions.join(', ')}.`)
     return router.createUrlTree(['/dashboard'])
   }
 
   return true
 }
+
+export const adminGuard: CanActivateFn = permissionGuard(['admin'])

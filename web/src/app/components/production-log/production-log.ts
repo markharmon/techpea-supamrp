@@ -1,7 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core'
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { SupabaseService, WorkOrder } from '../../services/supabase'
 import { LoadingDirective } from '../../shared/loading/loading.directive'
+
+interface YieldBatch {
+  work_order_item_id: string
+  batch_number: number
+  name: string
+  unit: string
+  expected: number
+}
 
 @Component({
   standalone: true,
@@ -17,11 +25,22 @@ export class ProductionLogComponent implements OnInit {
   loading = signal(false)
   workOrders = signal<WorkOrder[]>([])
   profiles = signal<any[]>([])
+  completing = signal(false)
+  errorMessage = signal('')
+  yieldBatches = signal<YieldBatch[]>([])
+  yieldForm = this.formBuilder.group({
+    quantities: new FormArray<FormControl<number | null>>([])
+  })
+
+  get yieldQuantities() {
+    return this.yieldForm.controls.quantities
+  }
 
   logForm = this.formBuilder.group({
     work_order_id: ['', Validators.required],
     profile_id: ['', Validators.required],
     work_time: [0, [Validators.min(0)]],
+    notes: ['', Validators.maxLength(2000)],
   })
 
   async ngOnInit(): Promise<void> {
@@ -60,10 +79,71 @@ export class ProductionLogComponent implements OnInit {
     }
   }
 
-  async completeOrder(): Promise<void> {
+  async beginCompletion(): Promise<void> {
+    if (this.loading()) return
+    this.errorMessage.set('')
+    this.logForm.markAllAsTouched()
     const workOrderId = this.logForm.value.work_order_id
-    if (!workOrderId) {
-      alert('Please select a Work Order first')
+    if (this.logForm.invalid || !workOrderId || !this.logForm.value.profile_id) {
+      this.errorMessage.set('Select a work order and user, and enter valid logged time and notes.')
+      return
+    }
+    this.loading.set(true)
+    try {
+      const { data, error } = await this.supabase.getWorkOrderYieldItems(workOrderId)
+      if (error) throw new Error(error.message)
+      if (!data?.length) throw new Error('No planned batches found for this work order.')
+      const batches: YieldBatch[] = []
+      for (const item of data) {
+        if (!item.items || item.items.batch_size === null || !Number.isFinite(Number(item.items.batch_size))
+          || Number(item.items.batch_size) <= 0 || !Number.isInteger(item.quantity_planned) || item.quantity_planned <= 0) {
+          throw new Error('A work order item has an invalid batch size or planned batch count.')
+        }
+        for (let batch = 1; batch <= item.quantity_planned; batch++) {
+          batches.push({
+            work_order_item_id: item.id, batch_number: batch,
+            name: item.items.name, unit: item.items.unit, expected: Number(item.items.batch_size)
+          })
+        }
+      }
+      this.yieldBatches.set(batches)
+      this.yieldQuantities.clear()
+      for (const batch of batches) {
+        this.yieldQuantities.push(this.formBuilder.control<number | null>(
+          batch.expected, [Validators.required, Validators.min(0)]
+        ))
+      }
+      this.completing.set(true)
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load planned batches.')
+    } finally {
+      this.loading.set(false)
+    }
+  }
+
+  cancelCompletion() {
+    if (this.loading()) return
+    this.completing.set(false)
+    this.yieldBatches.set([])
+    this.yieldQuantities.clear()
+    this.errorMessage.set('')
+  }
+
+  async completeOrder(): Promise<void> {
+    if (this.loading() || !this.completing()) return
+    this.errorMessage.set('')
+    this.logForm.markAllAsTouched()
+    this.yieldForm.markAllAsTouched()
+    const { work_order_id: workOrderId, profile_id: profileId, work_time: workTime, notes } = this.logForm.getRawValue()
+    if (this.logForm.invalid || !workOrderId || !profileId || workTime === null
+      || !Number.isFinite(workTime) || workTime < 0) {
+      this.errorMessage.set('Select a work order and user, and enter valid logged time and notes.')
+      return
+    }
+    const quantities = this.yieldQuantities.getRawValue()
+    if (this.yieldForm.invalid || !quantities.length || quantities.length !== this.yieldBatches().length
+      || quantities.some(quantity => quantity === null || !Number.isFinite(quantity) || quantity < 0)) {
+      this.errorMessage.set('Enter a finite, non-negative final yield for every batch.')
       return
     }
 
@@ -73,30 +153,47 @@ export class ProductionLogComponent implements OnInit {
 
     try {
       this.loading.set(true)
-      const { error } = await this.supabase.completeWorkOrder(workOrderId)
+
+      const yields = this.yieldBatches().map((batch, index) => {
+        const quantity = quantities[index]
+        if (quantity === null) throw new Error('Enter a final yield for every batch.')
+        return { work_order_item_id: batch.work_order_item_id, batch_number: batch.batch_number, quantity }
+      })
+      const { error } = await this.supabase.completeWorkOrderWithYields({
+        work_order_id: workOrderId, profile_id: profileId,
+        work_time: workTime, notes: notes?.trim() || null
+      }, yields)
       
-      if (error) throw error
+      if (error) throw new Error(error.message)
       
       alert('Work Order completed successfully!')
+      this.completing.set(false)
+      this.yieldBatches.set([])
+      this.yieldQuantities.clear()
       
       this.logForm.reset({
         work_order_id: '',
-        work_time: 0
+        profile_id: profileId,
+        work_time: 0,
+        notes: ''
       })
       
       // Refresh the list as the completed order should disappear
       await this.loadWorkOrders()
       
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message)
-      }
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to complete work order.')
     } finally {
       this.loading.set(false)
     }
   }
 
   async submitLog(): Promise<void> {
+    if (this.completing()) {
+      await this.completeOrder()
+      return
+    }
+    if (this.loading()) return
     if (this.logForm.invalid) return
 
     try {
@@ -129,7 +226,8 @@ export class ProductionLogComponent implements OnInit {
       const { error } = await this.supabase.addProductionLog({
         work_order_id: workOrderId as string,
         work_time: formValue.work_time as number,
-        profile_id: user.id as string 
+        profile_id: user.id as string,
+        notes: formValue.notes?.trim() || null
       })
 
       if (error) throw error
@@ -141,7 +239,8 @@ export class ProductionLogComponent implements OnInit {
       this.logForm.reset({
         work_order_id: '',
         profile_id: user.id, // keep the selected user
-        work_time: 0
+        work_time: 0,
+        notes: ''
       })
 
     } catch (error) {

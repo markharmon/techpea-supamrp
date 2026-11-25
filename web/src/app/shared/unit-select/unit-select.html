@@ -1,0 +1,8 @@
+<select [id]="selectId() || null" [disabled]="disabled()" (change)="select($event)" (blur)="onTouched()">
+  @if (placeholder()) {
+    <option value="" [selected]="value() === ''">{{ placeholder() }}</option>
+  }
+  @for (unit of units; track unit.value) {
+    <option [value]="unit.value" [selected]="value() === unit.value">{{ unit.label }}</option>
+  }
+</select>
