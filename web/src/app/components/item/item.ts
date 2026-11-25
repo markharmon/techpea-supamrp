@@ -3,11 +3,12 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { SupabaseService } from '../../services/supabase'
 import { LoadingDirective } from '../../shared/loading/loading.directive'
+import { UnitSelectComponent } from '../../shared/unit-select/unit-select'
 
 @Component({
   selector: 'app-item',
   standalone: true,
-  imports: [ReactiveFormsModule, LoadingDirective, RouterLink], // JsonPipe for debug if needed
+  imports: [ReactiveFormsModule, LoadingDirective, RouterLink, UnitSelectComponent], // JsonPipe for debug if needed
   templateUrl: './item.html',
   styleUrl: './item.scss'
 })
@@ -37,11 +38,14 @@ export class ItemComponent implements OnInit {
     vendor_sku: [''],
     vendor_description: [''],
     
-    unit: ['pcs', Validators.required],
-    
+    unit: ['g', Validators.required],
+
     // Inventory & Financials
-    current_stock: [0],
+    // current_stock/reserved_stock are derived from item_batches and are read-only here.
+    current_stock: [{ value: 0, disabled: true }],
     reserved_stock: [{ value: 0, disabled: true }],
+    batch_size: [null as number | null],
+    batch_unit: [''],
     cost_per_unit: [0],
     sales_price: [0],
     reorder_level: [0],
@@ -51,11 +55,16 @@ export class ItemComponent implements OnInit {
 
     is_manufactured: [false],
     is_saleable: [false],
-    bom: this.fb.array([])
+    bom: this.fb.array([]),
+    batches: this.fb.array([])
   })
 
   get bomControls() {
     return (this.form.get('bom') as FormArray).controls as FormGroup[]
+  }
+
+  get batchControls() {
+    return (this.form.get('batches') as FormArray).controls as FormGroup[]
   }
 
   isManufacturedControl = this.form.get('is_manufactured')
@@ -85,8 +94,12 @@ export class ItemComponent implements OnInit {
   async loadItem(id: string) {
     try {
       this.loading.set(true)
-      const { data, error } = await this.supabase.getItem(id)
+      const [{ data, error }, { data: batches, error: batchesError }] = await Promise.all([
+        this.supabase.getItem(id),
+        this.supabase.getItemBatches(id)
+      ])
       if (error) throw error
+      if (batchesError) throw batchesError
 
       if (data) {
         this.form.patchValue({
@@ -101,6 +114,8 @@ export class ItemComponent implements OnInit {
           unit: data.unit,
           current_stock: data.current_stock,
           reserved_stock: data.reserved_stock ?? 0,
+          batch_size: data.batch_size,
+          batch_unit: data.batch_unit,
           cost_per_unit: data.cost_per_unit,
           sales_price: data.sales_price,
           reorder_level: data.reorder_level,
@@ -135,6 +150,23 @@ export class ItemComponent implements OnInit {
                 // Patch the BOM item ID correctly
                 const lastControl = bomArray.at(bomArray.length - 1)
                 lastControl.get('child_item_id')?.setValue(bomItem.child_item.id)
+            })
+        }
+
+        const batchesArray = this.form.get('batches') as FormArray
+        batchesArray.clear()
+
+        if (batches && Array.isArray(batches)) {
+            batches.forEach((batch: any) => {
+                batchesArray.push(this.fb.group({
+                    id: [batch.id],
+                    manufacture_date: [batch.manufacture_date],
+                    expiry_date: [batch.expiry_date],
+                    quantity: [batch.quantity, [Validators.required, Validators.min(0)]],
+                    reserved: [{ value: batch.reserved ?? 0, disabled: true }],
+                    external_code: [batch.external_code],
+                    internal_code: [batch.internal_code]
+                }))
             })
         }
       }
@@ -181,6 +213,46 @@ export class ItemComponent implements OnInit {
       }
   }
 
+  addBatch() {
+    const batchesArray = this.form.get('batches') as FormArray
+    batchesArray.push(this.fb.group({
+      id: [null],
+      manufacture_date: [''],
+      expiry_date: [''],
+      quantity: [0, [Validators.required, Validators.min(0)]],
+      reserved: [{ value: 0, disabled: true }],
+      external_code: [''],
+      internal_code: ['']
+    }))
+  }
+
+  removeBatch(index: number) {
+    const batchesArray = this.form.get('batches') as FormArray
+    const batchGroup = batchesArray.at(index) as FormGroup
+    const id = batchGroup.get('id')?.value
+
+    if (id) {
+        if (confirm('Delete this batch? This saves immediately.')) {
+             this.deleteBatchFromDb(id, index)
+        }
+    } else {
+        batchesArray.removeAt(index)
+    }
+  }
+
+  async deleteBatchFromDb(id: string, index: number) {
+      try {
+          this.loading.set(true)
+          const { error } = await this.supabase.deleteItemBatches([id])
+          if (error) throw error;
+          (this.form.get('batches') as FormArray).removeAt(index)
+      } catch (e: any) {
+          alert('Error removing batch: ' + e.message)
+      } finally {
+          this.loading.set(false)
+      }
+  }
+
   async save() {
     if (this.form.invalid) return
 
@@ -207,6 +279,8 @@ export class ItemComponent implements OnInit {
         reorder_quantity: formValue.reorder_quantity,
         pack_size: formValue.pack_size,
         weight: formValue.weight,
+        batch_size: formValue.batch_size,
+        batch_unit: formValue.batch_unit,
       
         is_manufactured: formValue.is_manufactured,
         is_saleable: formValue.is_saleable
@@ -246,6 +320,27 @@ export class ItemComponent implements OnInit {
            
            const { error: bomError } = await this.supabase.upsertBom(cleanBom)
            if (bomError) throw bomError
+      }
+
+      // 3. Upsert Batches
+      if (formValue.batches && formValue.batches.length > 0) {
+          const batchItems = (formValue.batches as any[]).map(b => ({
+            id: b.id, // null if new
+            item_id: savedItemId as string,
+            manufacture_date: b.manufacture_date || null,
+            expiry_date: b.expiry_date || null,
+            quantity: b.quantity,
+            external_code: b.external_code || null,
+            internal_code: b.internal_code || null
+          }))
+
+          const cleanBatches = batchItems.map(b => {
+             if (!b.id) delete b.id
+             return b
+           })
+
+           const { error: batchError } = await this.supabase.upsertItemBatches(cleanBatches)
+           if (batchError) throw batchError
       }
 
       alert('Item saved!')

@@ -1,0 +1,18 @@
+.table-scroll {
+  overflow-x: auto;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.item-summary {
+  margin: 0;
+  padding-left: 1.6rem;
+}
+
+.batch-count {
+  opacity: 0.7;
+}

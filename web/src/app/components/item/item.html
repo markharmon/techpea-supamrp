@@ -39,7 +39,7 @@
       <div class="right">
         <div class="field">
             <label>Current Stock</label>
-            <input type="number" formControlName="current_stock">
+            <input type="number" formControlName="current_stock" readonly>
         </div>
         @if (!isNew) {
           <div class="field">
@@ -60,6 +60,17 @@
     </div>
 
     <div class="group">
+      <div class="field">
+        <label>Batch Size</label>
+        <input type="number" formControlName="batch_size" min="0">
+      </div>
+      <div class="field">
+        <label>Batch Unit</label>
+        <app-unit-select formControlName="batch_unit" placeholder="-- Select Unit --" />
+      </div>
+    </div>
+
+    <div class="group">
         <div class="checkbox-field">
             <input type="checkbox" id="chk-sale" formControlName="is_saleable">
             <label for="chk-sale">Saleable</label>
@@ -73,7 +84,7 @@
 
   @if (form.get('is_manufactured')?.value) {
   <fieldset>
-    <legend>Bill of Materials</legend>
+    <legend>Ingredients</legend>
 
     
     <div class="items" formArrayName="bom">
@@ -81,7 +92,7 @@
         <div [formGroupName]="$index" class="item group">
           <div class="field">
             <select formControlName="child_item_id">
-              <option value="" disabled>Select Material/Component</option>
+              <option value="" disabled>Select Ingredient</option>
               @for (opt of allItems(); track opt.id) {
                   <!-- Don't verify strictly against itemId on form load, but logically shouldn't select self. 
                         Handling that in template logic is messy, so skipping self-check for now. -->
@@ -103,6 +114,63 @@
     </div>
     <div class="actions">
       <button type="button" class="button" (click)="addBomItem()">Add Material</button>
+    </div>
+  </fieldset>
+  }
+
+  @if (!isNew) {
+  <fieldset>
+    <legend>Batches</legend>
+
+    <div class="items batches">
+      <div formArrayName="batches">
+        @for (batch of batchControls; track $index) {
+          <div [formGroupName]="$index" class="item">
+            <div class="group">
+                <div class="field">
+                  <label>Manufacture Date</label>
+                  <input type="date" formControlName="manufacture_date">
+                </div>
+
+                <div class="field">
+                  <label>Expiry Date</label>  
+                  <input type="date" formControlName="expiry_date">
+                </div>
+
+        
+                <div class="field">
+                  <label>Quantity</label>
+                  <input type="number" formControlName="quantity" min="0">
+                </div>
+     
+                <div class="field">
+                  <label>Reserved</label>
+                  <input type="number" formControlName="reserved" readonly>
+                </div>
+            </div>
+            <div class="group">
+                <div class="field">
+                  <label>External Code</label>
+                  <input type="text" formControlName="external_code">
+                </div>
+
+                <div class="field">
+                  <label>Internal Code</label>
+                  <input type="text" formControlName="internal_code">
+                </div>       
+            </div>
+            <div class="actions">
+              <button type="button" class="button" (click)="removeBatch($index)">Remove</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    @if (batchControls.length === 0) {
+        <p class="empty-state">No batches yet.</p>
+    }
+    <div class="actions">
+      <button type="button" class="button" (click)="addBatch()">Add Batch</button>
     </div>
   </fieldset>
   }
@@ -135,13 +203,7 @@
         <div class="right">
           <div class="field">
             <label>Unit</label>
-            <!-- <input type="text" formControlName="unit" placeholder="pcs"> -->
-              <select formControlName="unit">
-                  <option value="pcs">Pieces (pcs)</option>
-                  <option value="m">Meters (m)</option>
-                  <option value="kg">Kilograms (kg)</option>
-                  <option value="l">Liters (l)</option>
-              </select>
+            <app-unit-select formControlName="unit" />
           </div>
           <div class="field">
             <label>Cost £</label>

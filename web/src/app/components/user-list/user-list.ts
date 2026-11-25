@@ -44,7 +44,8 @@ export class UserListComponent implements OnInit {
     if (levelsRes.error) {
         console.error('Error loading staff levels:', levelsRes.error);
     } else {
-        this.staffLevels.set(levelsRes.data || []);
+        const filteredLevels = (levelsRes.data || []).filter((level: any) => level.permission_name !== 'viewer');
+        this.staffLevels.set(filteredLevels);
     }
 
     this.loading.set(false);

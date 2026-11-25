@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core'
 import { SupabaseService } from '../../services/supabase'
+import { PermissionService } from '../../services/permission.service'
 import { LoadingDirective } from '../../shared/loading/loading.directive'
 import { NgClass } from '@angular/common'
 import { RouterLink } from '@angular/router'
@@ -16,6 +17,7 @@ type SortDirection = 'asc' | 'desc'
 })
 export class WorkOrderListComponent implements OnInit {
   private supabase = inject(SupabaseService)
+  public permissions = inject(PermissionService)
   private readonly filterStorageKey = 'work-order-list:selected-statuses'
 
   loading = signal(false)

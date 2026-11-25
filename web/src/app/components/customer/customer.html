@@ -1,0 +1,29 @@
+<form [formGroup]="form" (ngSubmit)="save()" *peaLoading="loading()" class="form">
+  <h3>{{ isNew ? 'New Customer' : 'Edit Customer' }}</h3>
+
+  @if (errorMessage()) {
+    <div class="alert error" role="alert">{{ errorMessage() }}</div>
+    @if (!ready() && !isNew) {
+      <button class="button" type="button" (click)="loadCustomer()">Retry</button>
+    }
+  }
+
+  <fieldset [disabled]="!ready()">
+    <legend>Customer Details</legend>
+
+    <div class="field left">
+      <label for="customer-name">Name</label>
+      <input id="customer-name" type="text" formControlName="name" placeholder="Customer name"
+        required [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        aria-describedby="customer-name-error">
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <span id="customer-name-error" role="alert">Enter a customer name.</span>
+      }
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <a class="button" routerLink="/customers">{{ form.dirty ? 'Cancel Changes' : 'Back to Customers' }}</a>
+    <button type="submit" class="button primary" [disabled]="form.invalid || !ready() || loading()">Save</button>
+  </div>
+</form>
