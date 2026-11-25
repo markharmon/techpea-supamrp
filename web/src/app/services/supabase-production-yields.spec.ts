@@ -1,14 +1,12 @@
 import { TestBed } from '@angular/core/testing'
-import { SupabaseService } from './supabase'
+import { SUPABASE_CLIENT, SupabaseService } from './supabase'
 import { mocks } from './supabase-test-mocks'
 
-vi.mock('@supabase/supabase-js', async () => {
-  const { mocks } = await import('./supabase-test-mocks')
-  return { createClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc, auth: mocks.auth })) }
-})
-
 describe('Supabase production yields', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    TestBed.configureTestingModule({ providers: [{ provide: SUPABASE_CLIENT, useValue: mocks }] })
+  })
 
   it('loads batch counts, current batch sizes and stock units for the selected work order', () => {
     TestBed.inject(SupabaseService).getWorkOrderYieldItems('wo-1')

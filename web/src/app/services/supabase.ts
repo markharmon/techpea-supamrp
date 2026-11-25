@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core'
+import { inject, Injectable, InjectionToken, signal } from '@angular/core'
 import {
   AuthChangeEvent,
   AuthSession,
@@ -148,17 +148,20 @@ export interface WorkOrderLog {
   } | null
 }
 
+export const SUPABASE_CLIENT = new InjectionToken<SupabaseClient>('Supabase client', {
+  providedIn: 'root',
+  factory: () => createClient(environment.supabaseUrl, environment.supabaseKey)
+})
+
 @Injectable({
   providedIn: 'root',
 })
 export class SupabaseService {
-  private supabase: SupabaseClient
+  private supabase = inject(SUPABASE_CLIENT)
   _session: AuthSession | null = null
   public user = signal<User | null>(null)
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey)
-    
     this.supabase.auth.getSession().then(({ data }) => {
       this._session = data.session
       this.user.set(data.session?.user ?? null)

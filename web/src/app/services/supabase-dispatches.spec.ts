@@ -1,11 +1,6 @@
 import { TestBed } from '@angular/core/testing'
-import { DispatchHeader, SupabaseService } from './supabase'
+import { DispatchHeader, SUPABASE_CLIENT, SupabaseService } from './supabase'
 import { mocks } from './supabase-test-mocks'
-
-vi.mock('@supabase/supabase-js', async () => {
-  const { mocks } = await import('./supabase-test-mocks')
-  return { createClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc, auth: mocks.auth })) }
-})
 
 describe('Supabase dispatch operations', () => {
   let service: SupabaseService
@@ -18,6 +13,7 @@ describe('Supabase dispatch operations', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    TestBed.configureTestingModule({ providers: [{ provide: SUPABASE_CLIENT, useValue: mocks }] })
     service = TestBed.inject(SupabaseService)
   })
 

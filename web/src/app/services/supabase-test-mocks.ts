@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 const query = {
   select: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
